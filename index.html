@@ -1,1 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leitor Automático - Fatura Equatorial</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+        .card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        h2 {
+            color: #0056b3;
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            width: 90%;
+            cursor: pointer;
+        }
+        .resultado-box {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #e9f7ef;
+            border: 1px solid #28a745;
+            display: none; /* Escondido até ter resultado */
+        }
+        .erro-box {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8d7da;
+            border: 1px solid #dc3545;
+            color: #721c24;
+            display: none;
+        }
+        .valor-destaque {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
 
+    <div class="card">
+        <h2>Calculadora Automática Equatorial</h2>
+        <p>Selecione a fatura em <strong>PDF</strong> para extrair o consumo e calcular os valores automaticamente.</p>
+        
+        <input type="file" id="arquivoPdf" accept="application/pdf">
+        
+        <p id="statusMensagem" style="color: #666;"></p>
+
+        <div id="resultadoBox" class="resultado-box">
+            <p><strong>Consumo Identificado:</strong> <span id="consumoLido"></span> kWh</p>
+            <p><strong>Cálculo Realizado:</strong> (Consumo x 1,162438) + 21,08</p>
+            <div class="valor-destaque">Total: R$ <span id="valorCalculado"></span></div>
+        </div>
+
+        <div id="erroBox" class="erro-box"></div>
+    </div>
+
+    <script>
+        // Configurando o "trabalhador" da biblioteca de PDF
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const fileInput = document.getElementById('arquivoPdf');
+        const statusMensagem = document.getElementById('statusMensagem');
+        const resultadoBox = document.getElementById('resultadoBox');
+        const erroBox = document.getElementById('erroBox');
+        const consumoLidoSpan = document.getElementById('consumoLido');
+        const valorCalculadoSpan = document.getElementById('valorCalculado');
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Resetando a tela
+            resultadoBox.style.display = 'none';
+            erroBox.style.display = 'none';
+            statusMensagem.innerText = "Lendo o arquivo PDF...";
+
+            const fileReader = new FileReader();
+
+            fileReader.onload = function(e) {
+                const typedarray = new Uint8Array(e.target.result);
+
+                // Carregando o documento PDF
+                pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                    // Vamos ler a primeira página (onde geralmente fica a tabela de consumo)
+                    return pdf.getPage(1).then(function(page) {
+                        return page.getTextContent();
+                    });
+                }).then(function(textContent) {
+                    statusMensagem.innerText = "Analisando dados da fatura...";
+                    
+                    // Juntando todo o texto do PDF em uma única linha contínua
+                    const textoCompleto = textContent.items.map(item => item.str).join(' ');
+
+                    // A lógica minuciosa: procuramos a Constante do Medidor ("1,000000") 
+                    // e capturamos os números que vêm logo depois dela (o Consumo).
+                    const regex = /1,000000\s+(\d+)/;
+                    const match = textoCompleto.match(regex);
+
+                    if (match && match[1]) {
+                        const consumo = parseFloat(match[1]); // Aqui está o seu 139 ou qualquer valor do mês
+                        
+                        // Executando a matemática exata que você pediu
+                        const multiplicador = 1.162438;
+                        const soma = 21.08;
+                        const resultadoMatematico = (consumo * multiplicador) + soma;
+
+                        // Exibindo os resultados
+                        statusMensagem.innerText = "Cálculo concluído com sucesso!";
+                        consumoLidoSpan.innerText = consumo;
+                        valorCalculadoSpan.innerText = resultadoMatematico.toFixed(2).replace('.', ',');
+                        resultadoBox.style.display = 'block';
+
+                    } else {
+                        throw new Error("Não foi possível encontrar a tabela de consumo (Constante 1,000000) neste PDF.");
+                    }
+
+                }).catch(function(error) {
+                    statusMensagem.innerText = "";
+                    erroBox.innerText = "Erro: " + error.message;
+                    erroBox.style.display = 'block';
+                    console.error(error);
+                });
+            };
+
+            fileReader.readAsArrayBuffer(file);
+        });
+    </script>
+</body>
+</html>
