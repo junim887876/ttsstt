@@ -1,104 +1,452 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tor Automático - Fatura Equatorial</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- A meta tag abaixo é CRUCIAL para não dar zoom e ter aparência de app nativo -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Para o meu amor ❤️</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f0f2f5; padding: 30px; display: flex; justify-content: center; }
-        .card { background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 500px; width: 100%; text-align: center; }
-        h2 { color: #0056b3; margin-bottom: 20px; }
-        input[type="file"] { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; width: 90%; cursor: pointer; }
-        .resultado-box { margin-top: 20px; padding: 20px; border-radius: 8px; background-color: #e9f7ef; border: 1px solid #28a745; display: none; }
-        .erro-box { margin-top: 20px; padding: 20px; border-radius: 8px; background-color: #f8d7da; border: 1px solid #dc3545; color: #721c24; display: none; text-align: left; font-size: 14px;}
-        .valor-destaque { font-size: 24px; font-weight: bold; color: #28a745; margin-top: 10px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* Impede seleção de texto e highlight azul em botões no mobile */
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #ffe6eb;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; /* Impede scroll */
+            touch-action: none; /* Previne qualquer gesto de navegador (pull-to-refresh, swipe back) */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #game-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            width: 100%;
+            padding: 10px 0;
+        }
+
+        .header {
+            text-align: center;
+            color: #d81b60;
+            margin-bottom: 5px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #ad1457;
+        }
+
+        #canvas-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(216, 27, 96, 0.2);
+            padding: 5px;
+        }
+
+        canvas {
+            display: block;
+            border-radius: 4px;
+        }
+
+        /* Controles (D-PAD) */
+        #controls {
+            display: grid;
+            grid-template-columns: 60px 60px 60px;
+            grid-template-rows: 60px 60px 60px;
+            gap: 5px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: #f48fb1;
+            border: none;
+            border-radius: 12px;
+            font-size: 24px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 0 #d81b60;
+            transition: transform 0.1s, box-shadow 0.1s;
+            cursor: pointer;
+        }
+
+        .btn:active, .btn.active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #d81b60;
+            background-color: #d81b60;
+        }
+
+        #btn-up { grid-column: 2; grid-row: 1; }
+        #btn-left { grid-column: 1; grid-row: 2; }
+        #btn-right { grid-column: 3; grid-row: 2; }
+        #btn-down { grid-column: 2; grid-row: 3; }
+
+        /* Tela Final (Mensagem de Amor) */
+        #win-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #ffcdd2;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+            z-index: 10;
+        }
+
+        #win-screen h1 {
+            color: #b71c1c;
+            font-size: 32px;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #win-screen p {
+            color: #c62828;
+            font-size: 18px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1s ease 0.5s;
+        }
+
+        #win-screen .heart-icon {
+            font-size: 80px;
+            animation: heartbeat 1.5s infinite;
+            margin-bottom: 20px;
+            opacity: 0;
+            transition: all 1s ease 1s;
+        }
+
+        .show-anim {
+            opacity: 1 !important;
+            transform: scale(1) translateY(0) !important;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.3); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.15); }
+            60% { transform: scale(1); }
+        }
+
+        /* Corações flutuantes no fundo */
+        .floating-heart {
+            position: absolute;
+            color: #e57373;
+            font-size: 20px;
+            pointer-events: none;
+            animation: floatUp 4s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Calculadora Automática Equatorial</h2>
-        <p>Selecione a fatura em <strong>PDF</strong> para extrair o consumo e calcular os valores.</p>
+    <!-- Tela do Jogo -->
+    <div id="game-screen">
+        <div class="header">
+            <h1>Caminho do Coração</h1>
+            <p>Encontre a cartinha amor!</p>
+        </div>
         
-        <input type="file" id="arquivoPdf" accept="application/pdf">
-        
-        <p id="statusMensagem" style="color: #666;"></p>
-
-        <div id="resultadoBox" class="resultado-box">
-            <p><strong>Consumo Identificado:</strong> <span id="consumoLido"></span> kWh</p>
-            <p><strong>Cálculo:</strong> (<span id="consumoMostrado"></span> x 1,162438) + 21,08</p>
-            <div class="valor-destaque">Total: R$ <span id="valorCalculado"></span></div>
+        <div id="canvas-container">
+            <canvas id="mazeCanvas"></canvas>
         </div>
 
-        <div id="erroBox" class="erro-box"></div>
+        <div id="controls">
+            <div class="btn" id="btn-up">⬆️</div>
+            <div class="btn" id="btn-left">⬅️</div>
+            <div class="btn" id="btn-right">➡️</div>
+            <div class="btn" id="btn-down">⬇️</div>
+        </div>
+    </div>
+
+    <!-- Tela de Vitória -->
+    <div id="win-screen">
+        <div class="heart-icon" id="win-heart">❤️</div>
+        <h1 id="win-title">EU TE AMO!</h1>
+        <p id="win-text1">Você encontrou o caminho, mas a verdade é que você já é a dona do meu coração há muito tempo.</p>
+        <p id="win-text2">Obrigado por ser a melhor namorada do mundo. Cada segundo com você é especial! 🥰</p>
     </div>
 
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        // --- Configurações do Jogo ---
+        const canvas = document.getElementById('mazeCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Tamanho do labirinto (Colunas x Linhas). 15x20 dá um bom trabalho e leva cerca de 1-2 min.
+        const cols = 15;
+        const rows = 20; 
+        
+        // Ajuste responsivo
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        
+        // O canvas vai ocupar parte da tela, deixando espaço para header e d-pad
+        const maxCanvasWidth = screenWidth - 40;
+        const cellSize = Math.floor(maxCanvasWidth / cols);
+        
+        canvas.width = cols * cellSize;
+        canvas.height = rows * cellSize;
 
-        const fileInput = document.getElementById('arquivoPdf');
-        const statusMensagem = document.getElementById('statusMensagem');
-        const resultadoBox = document.getElementById('resultadoBox');
-        const erroBox = document.getElementById('erroBox');
+        // Variaveis de estado
+        let grid = [];
+        let current;
+        let stack = [];
+        let player = { x: 0, y: 0 };
+        let goal = { x: cols - 1, y: rows - 1 };
+        let gameWon = false;
 
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        // --- Geração do Labirinto (Recursive Backtracker) ---
+        class Cell {
+            constructor(c, r) {
+                this.c = c;
+                this.r = r;
+                this.walls = [true, true, true, true]; // Topo, Direita, Baixo, Esquerda
+                this.visited = false;
+            }
 
-            resultadoBox.style.display = 'none';
-            erroBox.style.display = 'none';
-            statusMensagem.innerText = "Lendo o arquivo PDF...";
+            draw() {
+                const x = this.c * cellSize;
+                const y = this.r * cellSize;
+                
+                ctx.strokeStyle = '#f06292'; // Cor das paredes (Rosa)
+                ctx.lineWidth = 2;
+                ctx.lineCap = "round";
 
-            const fileReader = new FileReader();
+                ctx.beginPath();
+                if (this.walls[0]) { ctx.moveTo(x, y); ctx.lineTo(x + cellSize, y); } // Topo
+                if (this.walls[1]) { ctx.moveTo(x + cellSize, y); ctx.lineTo(x + cellSize, y + cellSize); } // Direita
+                if (this.walls[2]) { ctx.moveTo(x + cellSize, y + cellSize); ctx.lineTo(x, y + cellSize); } // Baixo
+                if (this.walls[3]) { ctx.moveTo(x, y + cellSize); ctx.lineTo(x, y); } // Esquerda
+                ctx.stroke();
+            }
 
-            fileReader.onload = function(e) {
-                const typedarray = new Uint8Array(e.target.result);
+            checkNeighbors() {
+                let neighbors = [];
+                const top    = grid[this.c][this.r - 1];
+                const right  = grid[this.c + 1] ? grid[this.c + 1][this.r] : undefined;
+                const bottom = grid[this.c][this.r + 1];
+                const left   = grid[this.c - 1] ? grid[this.c - 1][this.r] : undefined;
 
-                pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
-                    return pdf.getPage(1).then(function(page) {
-                        return page.getTextContent();
-                    });
-                }).then(function(textContent) {
-                    statusMensagem.innerText = "Analisando dados da fatura...";
-                    
-                    // Junta os textos com espaço para garantir a leitura correta
-                    const textoCompleto = textContent.items.map(item => item.str).join(' ');
+                if (top && !top.visited) neighbors.push(top);
+                if (right && !right.visited) neighbors.push(right);
+                if (bottom && !bottom.visited) neighbors.push(bottom);
+                if (left && !left.visited) neighbors.push(left);
 
-                    // NOVA LÓGICA DE BUSCA (Mais inteligente e flexível):
-                    // Procura "1,000000" ou "1.000000"
-                    // \D*? -> Ignora qualquer quantidade de letras, espaços ou símbolos de formatação que o PDF colocar no meio
-                    // (\d{1,5}) -> Captura o primeiro bloco de números (de 1 a 5 dígitos) que encontrar depois disso.
-                    const regex = /1[,.]000000\D*?(\d{1,5})/;
-                    const match = textoCompleto.match(regex);
+                if (neighbors.length > 0) {
+                    const r = Math.floor(Math.random() * neighbors.length);
+                    return neighbors[r];
+                } else {
+                    return undefined;
+                }
+            }
+        }
 
-                    if (match && match[1]) {
-                        const consumo = parseFloat(match[1]);
-                        
-                        const multiplicador = 1.162438;
-                        const soma = 21.08;
-                        const resultadoMatematico = (consumo * multiplicador) + soma;
+        function removeWalls(a, b) {
+            const x = a.c - b.c;
+            if (x === 1) {
+                a.walls[3] = false;
+                b.walls[1] = false;
+            } else if (x === -1) {
+                a.walls[1] = false;
+                b.walls[3] = false;
+            }
+            const y = a.r - b.r;
+            if (y === 1) {
+                a.walls[0] = false;
+                b.walls[2] = false;
+            } else if (y === -1) {
+                a.walls[2] = false;
+                b.walls[0] = false;
+            }
+        }
 
-                        statusMensagem.innerText = "Cálculo concluído com sucesso!";
-                        document.getElementById('consumoLido').innerText = consumo;
-                        document.getElementById('consumoMostrado').innerText = consumo;
-                        document.getElementById('valorCalculado').innerText = resultadoMatematico.toFixed(2).replace('.', ',');
-                        
-                        resultadoBox.style.display = 'block';
-                    } else {
-                        throw new Error("Não foi possível localizar o consumo. Verifique se o formato do PDF da Equatorial mudou.");
-                    }
+        function generateMaze() {
+            for (let c = 0; c < cols; c++) {
+                grid[c] = [];
+                for (let r = 0; r < rows; r++) {
+                    grid[c][r] = new Cell(c, r);
+                }
+            }
 
-                }).catch(function(error) {
-                    statusMensagem.innerText = "";
-                    erroBox.innerText = "Erro: " + error.message;
-                    erroBox.style.display = 'block';
-                    console.error(error);
-                });
-            };
+            current = grid[0][0];
+            current.visited = true;
+            
+            // Loop síncrono para gerar instantaneamente
+            let generating = true;
+            while (generating) {
+                let next = current.checkNeighbors();
+                if (next) {
+                    next.visited = true;
+                    stack.push(current);
+                    removeWalls(current, next);
+                    current = next;
+                } else if (stack.length > 0) {
+                    current = stack.pop();
+                } else {
+                    generating = false;
+                }
+            }
+        }
 
-            fileReader.readAsArrayBuffer(file);
-        });
+        // --- Renderização ---
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Desenhar labirinto
+            for (let c = 0; c < cols; c++) {
+                for (let r = 0; r < rows; r++) {
+                    grid[c][r].draw();
+                }
+            }
+
+            // Desenhar Objetivo (Cartinha)
+            ctx.font = `${cellSize * 0.7}px Arial`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("💌", goal.x * cellSize + cellSize/2, goal.y * cellSize + cellSize/2);
+
+            // Desenhar Player (Coração)
+            ctx.fillText("💖", player.x * cellSize + cellSize/2, player.y * cellSize + cellSize/2);
+        }
+
+        // --- Movimentação ---
+        function movePlayer(direction) {
+            if(gameWon) return;
+
+            let currentCell = grid[player.x][player.y];
+            
+            if (direction === 'up' && !currentCell.walls[0]) player.y--;
+            else if (direction === 'right' && !currentCell.walls[1]) player.x++;
+            else if (direction === 'down' && !currentCell.walls[2]) player.y++;
+            else if (direction === 'left' && !currentCell.walls[3]) player.x--;
+
+            drawGame();
+            checkWin();
+        }
+
+        function checkWin() {
+            if (player.x === goal.x && player.y === goal.y) {
+                gameWon = true;
+                setTimeout(showWinScreen, 300);
+            }
+        }
+
+        // --- Controles de Toque (Com suporte a pressionar e segurar) ---
+        let moveInterval = null;
+
+        function handleTouchStart(btnId, direction) {
+            const btn = document.getElementById(btnId);
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // Impede duplo clique e scroll
+                btn.classList.add('active');
+                movePlayer(direction);
+                // Permite segurar o botão para andar contínuo
+                moveInterval = setInterval(() => movePlayer(direction), 150); 
+            }, {passive: false});
+
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                btn.classList.remove('active');
+                clearInterval(moveInterval);
+            });
+            // Tratamento caso o dedo saia do botão
+            btn.addEventListener('touchcancel', (e) => {
+                btn.classList.remove('active');
+                clearInterval(moveInterval);
+            });
+        }
+
+        handleTouchStart('btn-up', 'up');
+        handleTouchStart('btn-down', 'down');
+        handleTouchStart('btn-left', 'left');
+        handleTouchStart('btn-right', 'right');
+
+        // Previne scroll acidental tocando fora dos botões
+        document.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+
+        // --- Animação de Vitória ---
+        function createFloatingHearts() {
+            const winScreen = document.getElementById('win-screen');
+            for(let i=0; i<20; i++) {
+                let heart = document.createElement('div');
+                heart.innerHTML = '❤️';
+                heart.className = 'floating-heart';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                heart.style.animationDelay = Math.random() * 2 + 's';
+                winScreen.appendChild(heart);
+            }
+        }
+
+        function showWinScreen() {
+            document.getElementById('game-screen').style.display = 'none';
+            const winScreen = document.getElementById('win-screen');
+            winScreen.style.display = 'flex';
+            
+            // Inicia os corações subindo
+            createFloatingHearts();
+
+            // Trigger animations
+            setTimeout(() => {
+                document.getElementById('win-title').classList.add('show-anim');
+            }, 100);
+            setTimeout(() => {
+                document.getElementById('win-text1').classList.add('show-anim');
+            }, 800);
+            setTimeout(() => {
+                document.getElementById('win-text2').classList.add('show-anim');
+            }, 1600);
+            setTimeout(() => {
+                document.getElementById('win-heart').classList.add('show-anim');
+            }, 2400);
+        }
+
+        // --- Inicialização ---
+        generateMaze();
+        drawGame();
+
     </script>
 </body>
 </html>
+
+```
