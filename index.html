@@ -44,7 +44,7 @@
       overflow-x: hidden;
     }
 
-    /* Ajuste de topo para a Ilha Dinâmica do iPhone 14 Pro */
+    /* Ajuste para Ilha Dinâmica do iPhone 14 Pro */
     .header {
       width: 100%;
       max-width: 420px;
@@ -140,7 +140,7 @@
       color: var(--text-sub);
     }
 
-    /* Toggle Switch Futurista */
+    /* Toggle Switch */
     .switch {
       position: relative;
       display: inline-block;
@@ -344,7 +344,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = 'SEU_APPS_SCRIPT_URL_AQUI';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvhy1539xd8I_Iuke5Ja7hbHtVtZ6iaU4q-beZ0vDD9BGEzhS-y06jakx1Vrlmae0/exec';
 
     // Inicialização do OneSignal
     window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -362,11 +362,7 @@
     function toggleTimePicker() {
       const toggle = document.getElementById('timeToggle');
       const timeInput = document.getElementById('reminderTime');
-      if (toggle.checked) {
-        timeInput.classList.add('active');
-      } else {
-        timeInput.classList.remove('active');
-      }
+      timeInput.classList.toggle('active', toggle.checked);
     }
 
     async function loadReminders() {
@@ -420,7 +416,6 @@
         horarioAgendado: toggle.checked ? timeInput.value : null
       };
 
-      // Limpeza imediata da UI
       textInput.value = '';
       toggle.checked = false;
       toggleTimePicker();
@@ -465,7 +460,6 @@
       });
     }
 
-    // Carregamento inicial e auto-refresh a cada 30 segundos
     loadReminders();
     setInterval(loadReminders, 30000);
   </script>
