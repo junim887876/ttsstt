@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-  <title>Comprovantes</title>
+  <title>Comprovantes 2026</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="logo.jpg">
   <link rel="icon" type="image/jpeg" href="logo.jpg">
@@ -416,25 +416,24 @@
       cursor: pointer;
     }
 
+    /* MODAL DE VISUALIZAÇÃO LIMPO E NÍTIDO (SEM MARCA D'ÁGUA OU SOMBRAS) */
     .pdf-modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: #000000;
       z-index: 1000;
       display: none;
       flex-direction: column;
-      animation: modalFade 0.25s ease;
+      animation: modalFade 0.2s ease-out;
     }
 
     @keyframes modalFade {
-      from { opacity: 0; transform: scale(1.02); }
-      to { opacity: 1; transform: scale(1); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .pdf-modal-header {
-      padding: max(env(safe-area-inset-top), 16px) 16px 12px;
+      padding: max(env(safe-area-inset-top), 12px) 16px 12px;
       background: var(--card-solid);
       display: flex;
       justify-content: space-between;
@@ -461,10 +460,10 @@
       background: rgba(118, 118, 128, 0.2);
       border: none;
       color: var(--text);
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 8px;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
@@ -476,8 +475,8 @@
       background: rgba(255, 59, 48, 0.15);
       color: var(--danger);
       border: none;
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       font-size: 16px;
       font-weight: bold;
@@ -490,21 +489,23 @@
       width: 100%;
       height: 100%;
       overflow: auto;
-      background: #1c1c1e;
+      background: #121212;
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding: 20px 10px;
+      padding: 10px 5px;
       touch-action: pan-x pan-y pinch-zoom;
       -webkit-overflow-scrolling: touch;
     }
 
+    /* Canvas sem filtros ou sombras pesadas para manter clareza total */
     #pdfCanvas {
-      max-width: none;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      border-radius: 8px;
-      transition: transform 0.1s ease-out;
-      transform-origin: top center;
+      background: #ffffff;
+      border-radius: 4px;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
     }
 
     .ai-loader {
@@ -624,12 +625,10 @@
         <input type="text" id="searchInput" placeholder="Pesquisar documento..." oninput="buscarDoc()">
       </div>
 
-      <!-- Categorias Dinâmicas Nível 1 -->
       <div class="chips-wrapper" id="chipsContainer">
         <button class="chip active" onclick="filtrarCategoria(this, '')">Todos</button>
       </div>
 
-      <!-- Subcategorias Dinâmicas Nível 2 -->
       <div class="subchips-wrapper" id="subchipsContainer" style="display: none;"></div>
 
       <div id="lista"></div>
@@ -639,15 +638,15 @@
     <section id="tab-upload" class="tab-content">
       <div class="section-card">
         <div class="dropzone" onclick="document.getElementById('fileInput').click()">
-          <span style="font-size: 38px;">📄</span>
-          <div class="dropzone-text" id="fileName">Toque para selecionar PDF</div>
+          <span style="font-size: 38px;">📄 / 🖼️</span>
+          <div class="dropzone-text" id="fileName">Toque para selecionar PDF ou Foto</div>
           <div class="ai-badge">✨ Auto-Nome por IA</div>
         </div>
-        <input type="file" id="fileInput" accept="application/pdf" style="display: none;" onchange="processarArquivoIA()">
+        <input type="file" id="fileInput" accept="application/pdf, image/png, image/jpeg, image/jpg, image/webp" style="display: none;" onchange="processarArquivoIA()">
 
         <div class="ai-loader" id="aiLoader">
           <div class="spinner"></div>
-          <span>IA lendo documento offline...</span>
+          <span>IA lendo arquivo offline...</span>
         </div>
 
         <div class="form-field">
@@ -673,10 +672,8 @@
       </div>
     </section>
 
-    <!-- ABA 3: Opções, Categorias & Subcategorias -->
+    <!-- ABA 3: Opções -->
     <section id="tab-tools" class="tab-content">
-      
-      <!-- Criar Categoria Principal -->
       <div class="section-card">
         <h3 style="margin-bottom: 8px;">🏷️ Nova Categoria Principal</h3>
         <div class="form-field" style="margin-top: 0;">
@@ -685,7 +682,6 @@
         <button class="btn-submit" style="margin-top: 10px; padding: 12px;" onclick="criarCategoria()">Criar Categoria</button>
       </div>
 
-      <!-- Criar Subcategoria -->
       <div class="section-card">
         <h3 style="margin-bottom: 8px;">📂 Nova Subcategoria</h3>
         <div class="form-field" style="margin-top: 0;">
@@ -698,7 +694,6 @@
         <button class="btn-submit" style="margin-top: 10px; padding: 12px; background: linear-gradient(135deg, #34c759 0%, #007aff 100%);" onclick="criarSubCategoria()">Adicionar Subcategoria</button>
       </div>
 
-      <!-- Lista do Gerenciador -->
       <div class="section-card">
         <h3 style="margin-bottom: 12px;">📋 Minhas Categorias</h3>
         <div id="listaCategoriasGerenciador"></div>
@@ -722,14 +717,14 @@
 
   </div>
 
-  <!-- Modal PDF -->
+  <!-- Modal Visualizador com Canvas Nítido -->
   <div class="pdf-modal" id="pdfModal">
     <div class="pdf-modal-header">
       <h3 id="modalTitle">Documento</h3>
       <div class="zoom-controls">
-        <button class="btn-zoom" onclick="alterarZoom(-0.2)">➖</button>
-        <button class="btn-zoom" onclick="resetarZoom()">100%</button>
-        <button class="btn-zoom" onclick="alterarZoom(0.2)">➕</button>
+        <button class="btn-zoom" onclick="alterarZoom(-0.15)">➖</button>
+        <button class="btn-zoom" onclick="resetarZoom()">Ajustar</button>
+        <button class="btn-zoom" onclick="alterarZoom(0.15)">➕</button>
         <button class="btn-close-modal" onclick="fecharModal()">✕</button>
       </div>
     </div>
@@ -738,7 +733,6 @@
     </div>
   </div>
 
-  <!-- Tab Bar -->
   <nav class="tab-bar">
     <button class="tab-item active" onclick="switchTab('search', 'Documentos', this)">
       <span class="icon">📁</span>
@@ -767,7 +761,8 @@
     let subcategoriaFiltroAtiva = "";
 
     let currentPdfDoc = null;
-    let currentScale = 1.2;
+    let currentBlob = null;
+    let currentScale = 0.85; // ZOOM PADRÃO AJUSTADO PARA CABER PERFEITAMENTE NA TELA
 
     let db;
     const request = indexedDB.open("ComprovantesDB_v2", 1);
@@ -824,9 +819,7 @@
       document.getElementById('pageTitle').innerText = title;
     }
 
-    /* Atualização dos Seletor e Filtros de Categorias / Subcategorias */
     function atualizarInterfaceCategorias() {
-      // 1. Chips da Aba Documentos
       const containerChips = document.getElementById("chipsContainer");
       containerChips.innerHTML = `<button class="chip active" onclick="filtrarCategoria(this, '')">Todos</button>`;
       
@@ -834,7 +827,6 @@
         containerChips.innerHTML += `<button class="chip" onclick="filtrarCategoria(this, '${cat.nome}')">${cat.nome}</button>`;
       });
 
-      // 2. Selects da Aba Upload
       const selectCat = document.getElementById("docCategorySelect");
       const selectParentCat = document.getElementById("parentCategorySelect");
       
@@ -848,7 +840,6 @@
 
       atualizarSelectSubcategorias();
 
-      // 3. Lista Gerenciadora em Opções
       const listaGerenciador = document.getElementById("listaCategoriasGerenciador");
       listaGerenciador.innerHTML = "";
       categorias.forEach((cat, index) => {
@@ -940,7 +931,6 @@
       return cat ? cat.cor : '#007aff';
     }
 
-    /* Filtros Encadeados por Categoria e Subcategoria */
     function filtrarCategoria(el, catNome) {
       document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
       el.classList.add('active');
@@ -972,7 +962,7 @@
       listarDocs();
     }
 
-    /* Leitura Inteligente IA */
+    /* Leitura Inteligente por IA */
     async function processarArquivoIA() {
       const file = document.getElementById("fileInput").files[0];
       if (!file) return;
@@ -982,325 +972,8 @@
       loader.style.display = "flex";
 
       try {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const page = await pdf.getPage(1);
-        
-        const viewport = page.getViewport({ scale: 1.5 });
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+        let canvas = document.createElement("canvas");
+        let context = canvas.getContext("2d");
 
-        await page.render({ canvasContext: context, viewport: viewport }).promise;
-
-        const worker = await Tesseract.createWorker('por');
-        const ret = await worker.recognize(canvas);
-        await worker.terminate();
-
-        const texto = ret.data.text.toLowerCase();
-        let nomeSugerido = "";
-
-        if (texto.includes("ipva")) nomeSugerido = "IPVA " + extrairAno(texto);
-        else if (texto.includes("cnh")) nomeSugerido = "CNH Digital";
-        else if (texto.includes("crlv") || texto.includes("licenciamento")) nomeSugerido = "CRLV " + extrairAno(texto);
-        else if (texto.includes("comprovante") || texto.includes("pix")) nomeSugerido = "Comprovante " + extrairAno(texto);
-        else nomeSugerido = file.name.replace(".pdf", "");
-
-        document.getElementById("docName").value = nomeSugerido;
-      } catch (err) {
-        document.getElementById("docName").value = file.name.replace(".pdf", "");
-      } finally {
-        loader.style.display = "none";
-      }
-    }
-
-    function extrairAno(texto) {
-      const match = texto.match(/202[0-9]/);
-      return match ? match[0] : new Date().getFullYear();
-    }
-
-    function salvarDoc() {
-      const file = document.getElementById("fileInput").files[0];
-      const nome = document.getElementById("docName").value.trim();
-      const categoria = document.getElementById("docCategorySelect").value;
-      const subcategoria = document.getElementById("docSubCategorySelect").value;
-
-      if (!file || !nome) return alert("Selecione o PDF e confirme o nome!");
-
-      const timestampAtual = Date.now();
-      const tx = db.transaction("docs", "readwrite");
-
-      tx.objectStore("docs").put({ 
-        id: timestampAtual.toString(),
-        timestamp: timestampAtual,
-        nome: nome.toLowerCase(), 
-        displayNome: nome, 
-        categoria: categoria,
-        subcategoria: subcategoria,
-        blob: file,
-        data: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
-      });
-      
-      tx.oncomplete = () => {
-        document.getElementById("docName").value = "";
-        document.getElementById("fileInput").value = "";
-        document.getElementById("fileName").innerText = "Toque para selecionar PDF";
-        listarDocs();
-        switchTab('search', 'Documentos', document.querySelectorAll('.tab-item')[0]);
-      };
-    }
-
-    /* ORDENAÇÃO DECRESCENTE POR DATA DE UPLOAD (MAIS RECENTES NO TOPO) */
-    function listarDocs() {
-      const lista = document.getElementById("lista");
-      lista.innerHTML = "";
-      
-      const termoBusca = document.getElementById("searchInput").value.toLowerCase();
-      const todosDocs = [];
-
-      const tx = db.transaction("docs", "readonly");
-      tx.objectStore("docs").openCursor().onsuccess = (e) => {
-        const cursor = e.target.result;
-        if (cursor) {
-          todosDocs.push(cursor.value);
-          cursor.continue();
-        } else {
-          // Ordena por timestamp decrescente (mais recente primeiro)
-          todosDocs.sort((a, b) => (b.timestamp || Number(b.id)) - (a.timestamp || Number(a.id)));
-
-          let encontrou = false;
-
-          todosDocs.forEach(doc => {
-            const catNome = doc.categoria || "Geral";
-            const subcatNome = doc.subcategoria || "Geral";
-            const cor = obterCorCategoria(catNome);
-
-            const matchTexto = doc.nome.includes(termoBusca) || catNome.toLowerCase().includes(termoBusca) || subcatNome.toLowerCase().includes(termoBusca);
-            const matchCategoria = !categoriaFiltroAtiva || catNome === categoriaFiltroAtiva;
-            const matchSubcategoria = !subcategoriaFiltroAtiva || subcatNome === subcategoriaFiltroAtiva;
-
-            if (matchTexto && matchCategoria && matchSubcategoria) {
-              encontrou = true;
-              lista.innerHTML += `
-                <div class="card">
-                  <div class="card-stripe" style="background: ${cor};"></div>
-                  <div class="card-header">
-                    <div class="card-left">
-                      <div class="card-icon" style="background: linear-gradient(135deg, ${cor} 0%, #5856d6 100%);">📄</div>
-                      <div class="card-meta">
-                        <h3>${doc.displayNome}</h3>
-                        <div class="badges-row">
-                          <span class="cat-badge" style="background: ${cor};">${catNome}</span>
-                          <span class="subcat-badge">${subcatNome}</span>
-                        </div>
-                        <p>Enviado em ${doc.data}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="card-actions-grid">
-                    <button class="btn-action primary" onclick="abrirModal('${doc.id}')">Visualizar</button>
-                    <button class="btn-action whatsapp" onclick="compartilharWhatsApp('${doc.displayNome}', '${doc.data}')">WhatsApp</button>
-                    <button class="btn-action danger" onclick="deletarDoc('${doc.id}')">✕</button>
-                  </div>
-                </div>`;
-            }
-          });
-
-          if (!encontrou) {
-            lista.innerHTML = `
-              <div class="empty-state">
-                <div style="font-size: 44px; margin-bottom: 8px;">📂</div>
-                <p>Nenhum documento encontrado.</p>
-              </div>`;
-          }
-        }
-      };
-    }
-
-    function compartilharWhatsApp(nome, data) {
-      const texto = `*📄 Comprovante do Veículo*\n\n*Documento:* ${nome}\n*Data de Registro:* ${data}\n\n_Enviado via App Comprovantes_`;
-      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
-      window.open(url, '_blank');
-    }
-
-    /* RENDERIZADOR NATIVO CANVAS COM ZOOM */
-    async function abrirModal(id) {
-      const tx = db.transaction("docs", "readonly");
-      tx.objectStore("docs").get(id).onsuccess = async (e) => {
-        const doc = e.target.result;
-        if (doc) {
-          document.getElementById("modalTitle").innerText = doc.displayNome;
-          document.getElementById("pdfModal").style.display = "flex";
-
-          const arrayBuffer = await doc.blob.arrayBuffer();
-          currentPdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          currentScale = 1.2;
-          renderizarPaginaPDF();
-        }
-      };
-    }
-
-    async function renderizarPaginaPDF() {
-      if (!currentPdfDoc) return;
-
-      const page = await currentPdfDoc.getPage(1);
-      const viewport = page.getViewport({ scale: currentScale });
-      
-      const canvas = document.getElementById("pdfCanvas");
-      const context = canvas.getContext("2d");
-
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      await page.render({ canvasContext: context, viewport: viewport }).promise;
-    }
-
-    function alterarZoom(delta) {
-      currentScale = Math.max(0.5, Math.min(3.5, currentScale + delta));
-      renderizarPaginaPDF();
-    }
-
-    function resetarZoom() {
-      currentScale = 1.2;
-      renderizarPaginaPDF();
-    }
-
-    function fecharModal() {
-      document.getElementById("pdfModal").style.display = "none";
-      currentPdfDoc = null;
-    }
-
-    function deletarDoc(id) {
-      if (confirm("Deseja apagar este documento?")) {
-        const tx = db.transaction("docs", "readwrite");
-        tx.objectStore("docs").delete(id);
-        tx.oncomplete = () => listarDocs();
-      }
-    }
-
-    function buscarDoc() {
-      listarDocs();
-    }
-
-    async function gerarPDFUnificado() {
-      const tx = db.transaction("docs", "readonly");
-      const pdfs = [];
-
-      tx.objectStore("docs").openCursor().onsuccess = async (e) => {
-        const cursor = e.target.result;
-        if (cursor) {
-          pdfs.push(cursor.value.blob);
-          cursor.continue();
-        } else {
-          if (pdfs.length === 0) return alert("Nenhum documento para unir.");
-
-          const mergedPdf = await PDFLib.PDFDocument.create();
-
-          for (const pdfBlob of pdfs) {
-            const arrayBuffer = await pdfBlob.arrayBuffer();
-            const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
-            const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-            copiedPages.forEach((page) => mergedPdf.addPage(page));
-          }
-
-          const mergedPdfBytes = await mergedPdf.save();
-          const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-          
-          document.getElementById("modalTitle").innerText = "Dossiê PDF Unificado";
-          document.getElementById("pdfModal").style.display = "flex";
-
-          const arrayBuffer = await blob.arrayBuffer();
-          currentPdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          currentScale = 1.2;
-          renderizarPaginaPDF();
-        }
-      };
-    }
-
-    function exportarBackup() {
-      const tx = db.transaction("docs", "readonly");
-      const todosDocs = [];
-
-      tx.objectStore("docs").openCursor().onsuccess = (e) => {
-        const cursor = e.target.result;
-        if (cursor) {
-          const doc = cursor.value;
-          const reader = new FileReader();
-          reader.readAsDataURL(doc.blob);
-          reader.onloadend = () => {
-            todosDocs.push({
-              id: doc.id,
-              timestamp: doc.timestamp,
-              nome: doc.nome,
-              displayNome: doc.displayNome,
-              categoria: doc.categoria || "Geral",
-              subcategoria: doc.subcategoria || "Geral",
-              data: doc.data,
-              base64: reader.result
-            });
-          };
-          cursor.continue();
-        } else {
-          setTimeout(() => {
-            if (todosDocs.length === 0) return alert("Nenhum documento para exportar.");
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(todosDocs));
-            const dlAnchorElem = document.createElement('a');
-            dlAnchorElem.setAttribute("href", dataStr);
-            dlAnchorElem.setAttribute("download", `backup_comprovantes_${Date.now()}.json`);
-            dlAnchorElem.click();
-          }, 500);
-        }
-      };
-    }
-
-    function importarBackup(input) {
-      const file = input.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const docsImportados = JSON.parse(e.target.result);
-          const tx = db.transaction("docs", "readwrite");
-
-          docsImportados.forEach(doc => {
-            const byteString = atob(doc.base64.split(',')[1]);
-            const mimeString = doc.base64.split(',')[0].split(':')[1].split(';')[0];
-            const ab = new ArrayBuffer(byteString.length);
-            const ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) {
-              ia[i] = byteString.charCodeAt(i);
-            }
-            const blob = new Blob([ab], { type: mimeString });
-
-            tx.objectStore("docs").put({
-              id: doc.id || Date.now().toString(),
-              timestamp: doc.timestamp || Date.now(),
-              nome: doc.nome,
-              displayNome: doc.displayNome,
-              categoria: doc.categoria || "Geral",
-              subcategoria: doc.subcategoria || "Geral",
-              data: doc.data,
-              blob: blob
-            });
-          });
-
-          tx.oncomplete = () => {
-            alert("Backup restaurado!");
-            listarDocs();
-            switchTab('search', 'Documentos', document.querySelectorAll('.tab-item')[0]);
-          };
-        } catch (err) {
-          alert("Arquivo de backup inválido.");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js");
-    }
-  </script>
-</body>
-</html>
+        if (file.type === "application/pdf") {
+          const arrayBuffer = await file.arrayBuffer();
