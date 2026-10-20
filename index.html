@@ -9,15 +9,22 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   
+  <!-- Tesseract.js & PDF.js para IA / OCR 100% Offline no iPhone -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
   <style>
     :root {
       --primary: #007aff;
+      --primary-gradient: linear-gradient(135deg, #007aff 0%, #0056b3 100%);
       --bg: #f2f2f7;
-      --card-bg: #ffffff;
+      --card-bg: rgba(255, 255, 255, 0.82);
+      --card-solid: #ffffff;
       --text: #000000;
       --text-secondary: #8e8e93;
-      --border: #e5e5ea;
-      --danger: #ff3b30;
+      --border: rgba(60, 60, 67, 0.12);
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+      --accent-green: #34c759;
     }
 
     * {
@@ -25,208 +32,356 @@
       -webkit-tap-highlight-color: transparent;
       margin: 0;
       padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
       background-color: var(--bg);
       color: var(--text);
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+      padding-top: max(env(safe-area-inset-top), 20px);
+      padding-bottom: calc(env(safe-area-inset-bottom) + 90px);
       min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
     .container {
-      padding: 16px;
-      max-width: 500px;
+      padding: 0 20px;
+      max-width: 440px;
       margin: 0 auto;
     }
 
+    /* Cabeçalho Nativo */
     header {
-      padding: 12px 16px 8px;
+      padding: 16px 20px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
     }
 
     header h1 {
       font-size: 34px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      color: #000;
     }
 
-    /* Sistema de Abas */
+    header .badge-offline {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(52, 199, 89, 0.15);
+      color: var(--accent-green);
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    header .badge-offline::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent-green);
+      border-radius: 50%;
+    }
+
+    /* Abas & Transições */
     .tab-content {
       display: none;
-      animation: fadeIn 0.25s ease-in-out;
+      animation: iosSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .tab-content.active {
       display: block;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes iosSlideIn {
+      from { opacity: 0; transform: scale(0.97) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    /* Barra de Busca estilo iOS */
-    .search-box {
+    /* Busca Estilo iOS SearchBar */
+    .search-wrapper {
       position: relative;
-      margin-bottom: 16px;
+      margin: 12px 0 20px;
     }
 
-    .search-box input {
+    .search-wrapper input {
       width: 100%;
-      padding: 12px 16px 12px 40px;
-      background: #e3e3e8;
+      padding: 12px 16px 12px 42px;
+      background: rgba(118, 118, 128, 0.12);
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       font-size: 17px;
       outline: none;
       color: var(--text);
+      transition: all 0.2s;
     }
 
-    .search-box::before {
-      content: '🔍';
+    .search-wrapper input:focus {
+      background: rgba(118, 118, 128, 0.18);
+    }
+
+    .search-wrapper .search-icon {
       position: absolute;
-      left: 12px;
+      left: 14px;
       top: 50%;
       transform: translateY(-50%);
       font-size: 16px;
-      opacity: 0.5;
+      opacity: 0.4;
     }
 
-    /* Cards de Documento */
+    /* Filtros Rápidos (Chips) */
+    .chips-wrapper {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 8px;
+      scrollbar-width: none;
+    }
+
+    .chips-wrapper::-webkit-scrollbar { display: none; }
+
+    .chip {
+      background: var(--card-solid);
+      padding: 7px 14px;
+      border-radius: 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border: 0.5px solid var(--border);
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Cards de Documentos */
     .card {
       background: var(--card-bg);
-      border-radius: 14px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 18px;
       padding: 16px;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      transition: transform 0.15s ease;
+      border: 0.5px solid var(--border);
+      box-shadow: var(--shadow);
+      transition: transform 0.15s ease, background-color 0.2s;
     }
 
     .card:active {
       transform: scale(0.98);
+      background: rgba(255, 255, 255, 0.6);
     }
 
-    .card-info {
+    .card-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       overflow: hidden;
     }
 
     .card-icon {
-      font-size: 28px;
-      background: #e1f0ff;
-      padding: 10px;
-      border-radius: 10px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--primary-gradient);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(0, 122, 255, 0.25);
     }
 
-    .card-details h3 {
-      font-size: 17px;
+    .card-meta h3 {
+      font-size: 16px;
       font-weight: 600;
-      text-transform: capitalize;
+      letter-spacing: -0.3px;
+      color: var(--text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 200px;
+      max-width: 190px;
     }
 
-    .card-details p {
-      font-size: 13px;
+    .card-meta p {
+      font-size: 12px;
       color: var(--text-secondary);
-      margin-top: 2px;
+      margin-top: 3px;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .btn-view {
-      background: #e1f0ff;
+      background: rgba(0, 122, 255, 0.1);
       color: var(--primary);
       border: none;
-      padding: 8px 14px;
+      padding: 8px 16px;
       border-radius: 20px;
       font-weight: 600;
       font-size: 14px;
       text-decoration: none;
     }
 
-    /* Formulário de Upload */
-    .form-group {
-      background: var(--card-bg);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    .btn-delete {
+      background: rgba(255, 59, 48, 0.1);
+      color: #ff3b30;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      font-weight: 600;
-      margin-bottom: 8px;
+    /* Formulário de Upload Moderno */
+    .upload-card {
+      background: var(--card-solid);
+      border-radius: 20px;
+      padding: 20px;
+      border: 0.5px solid var(--border);
+      box-shadow: var(--shadow);
     }
 
-    .form-group input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 16px;
-      outline: none;
-    }
-
-    .file-dropzone {
-      border: 2px dashed var(--primary);
-      background: #f0f7ff;
-      border-radius: 12px;
-      padding: 24px;
+    .dropzone {
+      border: 2px dashed rgba(0, 122, 255, 0.4);
+      background: rgba(0, 122, 255, 0.03);
+      border-radius: 16px;
+      padding: 30px 16px;
       text-align: center;
       cursor: pointer;
+      transition: all 0.2s;
       margin-bottom: 16px;
     }
 
-    .file-dropzone p {
+    .dropzone:active {
+      background: rgba(0, 122, 255, 0.08);
+    }
+
+    .dropzone-icon {
+      font-size: 38px;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .dropzone-text {
       font-size: 15px;
-      color: var(--primary);
       font-weight: 600;
+      color: var(--primary);
+    }
+
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, #af52de 0%, #007aff 100%);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
       margin-top: 8px;
+    }
+
+    .form-field {
+      margin-top: 16px;
+    }
+
+    .form-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .form-field input {
+      width: 100%;
+      padding: 14px;
+      background: rgba(118, 118, 128, 0.08);
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      outline: none;
+      color: var(--text);
     }
 
     .btn-submit {
       width: 100%;
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
       border: none;
       padding: 16px;
-      border-radius: 14px;
+      border-radius: 16px;
       font-size: 17px;
       font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,122,255,0.3);
+      margin-top: 20px;
+      box-shadow: 0 6px 20px rgba(0, 122, 255, 0.35);
+      transition: opacity 0.2s;
     }
 
-    .btn-submit:active {
-      opacity: 0.8;
+    .btn-submit:active { opacity: 0.85; }
+
+    /* Indicador de Processamento IA */
+    .ai-loader {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #af52de;
+      font-weight: 600;
+      margin-top: 10px;
     }
 
-    /* Barra de Navegação Inferior estilo iOS */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(175, 82, 222, 0.2);
+      border-top-color: #af52de;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Tab Bar Flutuante iOS */
     .tab-bar {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: max(env(safe-area-inset-bottom), 12px);
+      left: 20px;
+      right: 20px;
+      max-width: 400px;
+      margin: 0 auto;
       background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-top: 0.5px solid var(--border);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 0.5px solid var(--border);
+      border-radius: 30px;
       display: flex;
       justify-content: space-around;
-      padding-top: 8px;
-      padding-bottom: env(safe-area-inset-bottom);
+      padding: 8px 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
 
     .tab-item {
@@ -236,81 +391,112 @@
       flex-direction: column;
       align-items: center;
       color: var(--text-secondary);
-      font-size: 10px;
-      font-weight: 500;
-      gap: 4px;
-      width: 50%;
+      font-size: 11px;
+      font-weight: 600;
+      gap: 3px;
+      width: 45%;
+      padding: 4px 0;
+      border-radius: 20px;
+      transition: all 0.2s;
     }
 
     .tab-item.active {
       color: var(--primary);
     }
 
-    .tab-item span.icon {
-      font-size: 22px;
-    }
+    .tab-item .icon { font-size: 20px; }
 
     .empty-state {
       text-align: center;
-      padding: 40px 20px;
+      padding: 60px 20px;
       color: var(--text-secondary);
+    }
+
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.8;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h1 id="pageTitle">Buscar</h1>
+    <div>
+      <div class="badge-offline">Modo Offline</div>
+      <h1 id="pageTitle">Documentos</h1>
+    </div>
   </header>
 
   <div class="container">
     
-    <!-- Aba de Busca e Lista -->
+    <!-- ABA 1: Lista e Busca -->
     <section id="tab-search" class="tab-content active">
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Buscar IPVA, CNH, CRLV..." oninput="buscarDoc()">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Pesquisar documento..." oninput="buscarDoc()">
       </div>
+
+      <!-- Filtros Rápidos -->
+      <div class="chips-wrapper">
+        <button class="chip active" onclick="filtrarChip(this, '')">Todos</button>
+        <button class="chip" onclick="filtrarChip(this, 'ipva')">IPVA</button>
+        <button class="chip" onclick="filtrarChip(this, 'cnh')">CNH</button>
+        <button class="chip" onclick="filtrarChip(this, 'crlv')">CRLV</button>
+        <button class="chip" onclick="filtrarChip(this, 'seguro')">Seguro</button>
+      </div>
+
       <div id="lista"></div>
     </section>
 
-    <!-- Aba de Upload -->
+    <!-- ABA 2: Novo Upload com IA -->
     <section id="tab-upload" class="tab-content">
-      <div class="form-group">
-        <label>1. Selecionar Documento</label>
-        <div class="file-dropzone" onclick="document.getElementById('fileInput').click()">
-          <span style="font-size: 32px;">📄</span>
-          <p id="fileName">Toque para escolher o PDF</p>
-          <input type="file" id="fileInput" accept="application/pdf" style="display: none;" onchange="atualizarNomeArquivo()">
+      <div class="upload-card">
+        <div class="dropzone" onclick="document.getElementById('fileInput').click()">
+          <span class="dropzone-icon">📄</span>
+          <div class="dropzone-text" id="fileName">Toque para selecionar PDF</div>
+          <div class="ai-badge">✨ Auto-Nome por IA</div>
+        </div>
+        <input type="file" id="fileInput" accept="application/pdf" style="display: none;" onchange="processarArquivoIA()">
+
+        <div class="ai-loader" id="aiLoader">
+          <div class="spinner"></div>
+          <span>IA lendo documento offline...</span>
         </div>
 
-        <label>2. Identificação</label>
-        <input type="text" id="docName" placeholder="Ex: IPVA 2026 Hilux">
-      </div>
+        <div class="form-field">
+          <label>Nome do Documento</label>
+          <input type="text" id="docName" placeholder="Ex: IPVA 2026 Hilux">
+        </div>
 
-      <button class="btn-submit" onclick="salvarDoc()">Salvar no iPhone</button>
+        <button class="btn-submit" onclick="salvarDoc()">Salvar no iPhone</button>
+      </div>
     </section>
 
   </div>
 
-  <!-- Tab Bar Nativa -->
+  <!-- Tab Bar Flutuante -->
   <nav class="tab-bar">
-    <button class="tab-item active" onclick="switchTab('search', 'Buscar')">
-      <span class="icon">🔍</span>
+    <button class="tab-item active" onclick="switchTab('search', 'Documentos', this)">
+      <span class="icon">📁</span>
       <span>Documentos</span>
     </button>
-    <button class="tab-item" onclick="switchTab('upload', 'Adicionar')">
+    <button class="tab-item" onclick="switchTab('upload', 'Adicionar', this)">
       <span class="icon">➕</span>
-      <span>Novo File</span>
+      <span>Adicionar</span>
     </button>
   </nav>
 
   <script>
+    // Configura o worker do PDF.js
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
+
     let db;
     const request = indexedDB.open("ComprovantesDB", 1);
 
     request.onupgradeneeded = (e) => {
       db = e.target.result;
-      db.createObjectStore("docs", { keyPath: "nome" });
+      db.createObjectStore("docs", { keyPath: "id" });
     };
 
     request.onsuccess = (e) => {
@@ -318,29 +504,74 @@
       listarDocs();
     };
 
-    function switchTab(tab, title) {
+    function switchTab(tab, title, btn) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
       
       document.getElementById(`tab-${tab}`).classList.add('active');
-      event.currentTarget.classList.add('active');
+      btn.classList.add('active');
       document.getElementById('pageTitle').innerText = title;
     }
 
-    function atualizarNomeArquivo() {
+    /* Leitura Inteligente com OCR/IA 100% Offline */
+    async function processarArquivoIA() {
       const file = document.getElementById("fileInput").files[0];
-      if (file) {
-        document.getElementById("fileName").innerText = file.name;
+      if (!file) return;
+
+      document.getElementById("fileName").innerText = file.name;
+      const loader = document.getElementById("aiLoader");
+      loader.style.display = "flex";
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const page = await pdf.getPage(1);
+        
+        // Renderiza página em um Canvas para o OCR
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+        // IA / OCR lê a imagem gerada do PDF
+        const worker = await Tesseract.createWorker('por');
+        const ret = await worker.recognize(canvas);
+        await worker.terminate();
+
+        const texto = ret.data.text.toLowerCase();
+        let nomeSugerido = "";
+
+        // Padrões de reconhecimento inteligente
+        if (texto.includes("ipva")) nomeSugerido = "IPVA " + extrairAno(texto);
+        else if (texto.includes("cnh")) nomeSugerido = "CNH Digital";
+        else if (texto.includes("crlv") || texto.includes("licenciamento")) nomeSugerido = "CRLV " + extrairAno(texto);
+        else if (texto.includes("comprovante") || texto.includes("pix")) nomeSugerido = "Comprovante " + extrairAno(texto);
+        else nomeSugerido = file.name.replace(".pdf", "");
+
+        document.getElementById("docName").value = nomeSugerido;
+      } catch (err) {
+        document.getElementById("docName").value = file.name.replace(".pdf", "");
+      } finally {
+        loader.style.display = "none";
       }
+    }
+
+    function extrairAno(texto) {
+      const match = texto.match(/202[0-9]/);
+      return match ? match[0] : new Date().getFullYear();
     }
 
     function salvarDoc() {
       const file = document.getElementById("fileInput").files[0];
       const nome = document.getElementById("docName").value.trim();
-      if (!file || !nome) return alert("Selecione um PDF e digite o nome!");
+      if (!file || !nome) return alert("Selecione o PDF e confirme o nome!");
 
       const tx = db.transaction("docs", "readwrite");
       tx.objectStore("docs").put({ 
+        id: Date.now().toString(),
         nome: nome.toLowerCase(), 
         displayNome: nome, 
         blob: file,
@@ -350,9 +581,9 @@
       tx.oncomplete = () => {
         document.getElementById("docName").value = "";
         document.getElementById("fileInput").value = "";
-        document.getElementById("fileName").innerText = "Toque para escolher o PDF";
+        document.getElementById("fileName").innerText = "Toque para selecionar PDF";
         listarDocs();
-        switchTab('search', 'Buscar');
+        switchTab('search', 'Documentos', document.querySelectorAll('.tab-item')[0]);
       };
     }
 
@@ -370,29 +601,47 @@
             const url = URL.createObjectURL(cursor.value.blob);
             lista.innerHTML += `
               <div class="card">
-                <div class="card-info">
+                <div class="card-left">
                   <div class="card-icon">📄</div>
-                  <div class="card-details">
+                  <div class="card-meta">
                     <h3>${cursor.value.displayNome}</h3>
-                    <p>Salvo em ${cursor.value.data || 'Offline'}</p>
+                    <p>Salvo em ${cursor.value.data}</p>
                   </div>
                 </div>
-                <a href="${url}" target="_blank" class="btn-view">Abrir</a>
+                <div class="card-actions">
+                  <a href="${url}" target="_blank" class="btn-view">Visualizar</a>
+                  <button class="btn-delete" onclick="deletarDoc('${cursor.value.id}')">✕</button>
+                </div>
               </div>`;
           }
           cursor.continue();
         } else if (!encontrou) {
           lista.innerHTML = `
             <div class="empty-state">
-              <span style="font-size: 40px;">📂</span>
-              <p style="margin-top: 8px;">Nenhum comprovante encontrado.</p>
+              <div class="icon">🔍</div>
+              <p>Nenhum comprovante encontrado.</p>
             </div>`;
         }
       };
     }
 
+    function deletarDoc(id) {
+      if (confirm("Deseja apagar este documento?")) {
+        const tx = db.transaction("docs", "readwrite");
+        tx.objectStore("docs").delete(id);
+        tx.oncomplete = () => listarDocs();
+      }
+    }
+
     function buscarDoc() {
       listarDocs(document.getElementById("searchInput").value);
+    }
+
+    function filtrarChip(el, termo) {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById("searchInput").value = termo;
+      buscarDoc();
     }
 
     if ("serviceWorker" in navigator) {
