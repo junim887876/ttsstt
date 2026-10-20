@@ -3,28 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <title>Meus Comprovantes</title>
+  <title>Comprovantes 2026</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#f2f2f7">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="logo.jpg">
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
   
-  <!-- Tesseract.js & PDF.js para IA / OCR 100% Offline no iPhone -->
+  <meta name="theme-color" content="#0f0f12" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- Dependências 2026: Tesseract OCR + PDF.js + pdf-lib para Mesclar PDFs -->
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
   <style>
     :root {
       --primary: #007aff;
-      --primary-gradient: linear-gradient(135deg, #007aff 0%, #0056b3 100%);
+      --primary-gradient: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+      --accent-green: #34c759;
+      --accent-purple: #af52de;
+      --danger: #ff3b30;
+      
+      /* Modo Claro por padrão */
       --bg: #f2f2f7;
-      --card-bg: rgba(255, 255, 255, 0.82);
+      --card-bg: rgba(255, 255, 255, 0.78);
       --card-solid: #ffffff;
       --text: #000000;
       --text-secondary: #8e8e93;
       --border: rgba(60, 60, 67, 0.12);
-      --shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-      --accent-green: #34c759;
+      --glass-blur: blur(25px) saturate(180%);
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      --search-bg: rgba(118, 118, 128, 0.12);
+    }
+
+    /* Dark Mode Automático (iOS) e Manual */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000000;
+        --card-bg: rgba(28, 28, 30, 0.75);
+        --card-solid: #1c1c1e;
+        --text: #ffffff;
+        --text-secondary: #98989d;
+        --border: rgba(255, 255, 255, 0.15);
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        --search-bg: rgba(118, 118, 128, 0.24);
+      }
+    }
+
+    /* Override para alternador manual */
+    body.theme-dark {
+      --bg: #000000 !important;
+      --card-bg: rgba(28, 28, 30, 0.75) !important;
+      --card-solid: #1c1c1e !important;
+      --text: #ffffff !important;
+      --text-secondary: #98989d !important;
+      --border: rgba(255, 255, 255, 0.15) !important;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+      --search-bg: rgba(118, 118, 128, 0.24) !important;
+    }
+
+    body.theme-light {
+      --bg: #f2f2f7 !important;
+      --card-bg: rgba(255, 255, 255, 0.78) !important;
+      --card-solid: #ffffff !important;
+      --text: #000000 !important;
+      --text-secondary: #8e8e93 !important;
+      --border: rgba(60, 60, 67, 0.12) !important;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+      --search-bg: rgba(118, 118, 128, 0.12) !important;
     }
 
     * {
@@ -38,11 +86,12 @@
     body {
       background-color: var(--bg);
       color: var(--text);
-      padding-top: max(env(safe-area-inset-top), 20px);
-      padding-bottom: calc(env(safe-area-inset-bottom) + 90px);
+      padding-top: max(env(safe-area-inset-top), 24px);
+      padding-bottom: calc(env(safe-area-inset-bottom) + 95px);
       min-height: 100vh;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .container {
@@ -51,77 +100,67 @@
       margin: 0 auto;
     }
 
-    /* Cabeçalho Nativo */
+    /* Top Bar 2026 */
     header {
-      padding: 16px 20px 8px;
+      padding: 12px 20px 16px;
       display: flex;
       justify-content: space-between;
-      align-items: flex-end;
+      align-items: center;
     }
 
     header h1 {
-      font-size: 34px;
+      font-size: 32px;
       font-weight: 800;
       letter-spacing: -0.8px;
-      color: #000;
     }
 
-    header .badge-offline {
-      font-size: 11px;
-      font-weight: 600;
-      background: rgba(52, 199, 89, 0.15);
-      color: var(--accent-green);
-      padding: 4px 10px;
-      border-radius: 20px;
+    .theme-toggle-btn {
+      background: var(--card-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 0.5px solid var(--border);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
-      gap: 4px;
-      margin-bottom: 6px;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
     }
 
-    header .badge-offline::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      background: var(--accent-green);
-      border-radius: 50%;
-    }
-
-    /* Abas & Transições */
+    /* Abas & Animações 2026 */
     .tab-content {
       display: none;
-      animation: iosSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: iosSpring 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
     }
 
     .tab-content.active {
       display: block;
     }
 
-    @keyframes iosSlideIn {
-      from { opacity: 0; transform: scale(0.97) translateY(8px); }
+    @keyframes iosSpring {
+      from { opacity: 0; transform: scale(0.95) translateY(12px); }
       to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    /* Busca Estilo iOS SearchBar */
+    /* Interface de Busca */
     .search-wrapper {
       position: relative;
-      margin: 12px 0 20px;
+      margin-bottom: 14px;
     }
 
     .search-wrapper input {
       width: 100%;
-      padding: 12px 16px 12px 42px;
-      background: rgba(118, 118, 128, 0.12);
+      padding: 14px 16px 14px 44px;
+      background: var(--search-bg);
       border: none;
-      border-radius: 14px;
+      border-radius: 16px;
       font-size: 17px;
       outline: none;
       color: var(--text);
       transition: all 0.2s;
-    }
-
-    .search-wrapper input:focus {
-      background: rgba(118, 118, 128, 0.18);
     }
 
     .search-wrapper .search-icon {
@@ -129,26 +168,25 @@
       left: 14px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 16px;
+      font-size: 18px;
       opacity: 0.4;
     }
 
-    /* Filtros Rápidos (Chips) */
+    /* Chips Filtro */
     .chips-wrapper {
       display: flex;
       gap: 8px;
       overflow-x: auto;
-      padding-bottom: 12px;
+      padding-bottom: 14px;
       margin-bottom: 8px;
       scrollbar-width: none;
     }
-
     .chips-wrapper::-webkit-scrollbar { display: none; }
 
     .chip {
       background: var(--card-solid);
-      padding: 7px 14px;
-      border-radius: 18px;
+      padding: 8px 16px;
+      border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
       color: var(--text-secondary);
@@ -158,43 +196,47 @@
     }
 
     .chip.active {
-      background: var(--primary);
+      background: var(--primary-gradient);
       color: white;
-      border-color: var(--primary);
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
     }
 
-    /* Cards de Documentos */
+    /* Cards Neumórficos / Glass 2026 */
     .card {
       background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-radius: 18px;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-radius: 22px;
       padding: 16px;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      margin-bottom: 14px;
       border: 0.5px solid var(--border);
       box-shadow: var(--shadow);
-      transition: transform 0.15s ease, background-color 0.2s;
+      transition: transform 0.2s ease;
     }
 
     .card:active {
       transform: scale(0.98);
-      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
     }
 
     .card-left {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       overflow: hidden;
     }
 
     .card-icon {
       width: 44px;
       height: 44px;
-      border-radius: 12px;
+      border-radius: 14px;
       background: var(--primary-gradient);
       color: white;
       display: flex;
@@ -202,90 +244,88 @@
       justify-content: center;
       font-size: 20px;
       flex-shrink: 0;
-      box-shadow: 0 4px 10px rgba(0, 122, 255, 0.25);
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
     }
 
     .card-meta h3 {
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: -0.3px;
-      color: var(--text);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 190px;
+      max-width: 170px;
     }
 
     .card-meta p {
       font-size: 12px;
       color: var(--text-secondary);
-      margin-top: 3px;
+      margin-top: 2px;
     }
 
-    .card-actions {
-      display: flex;
-      align-items: center;
+    .card-actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
       gap: 8px;
     }
 
-    .btn-view {
-      background: rgba(0, 122, 255, 0.1);
-      color: var(--primary);
+    .btn-action {
+      background: rgba(118, 118, 128, 0.12);
+      color: var(--text);
       border: none;
-      padding: 8px 16px;
-      border-radius: 20px;
+      padding: 10px;
+      border-radius: 12px;
       font-weight: 600;
-      font-size: 14px;
-      text-decoration: none;
-    }
-
-    .btn-delete {
-      background: rgba(255, 59, 48, 0.1);
-      color: #ff3b30;
-      border: none;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      font-size: 14px;
+      font-size: 13px;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 6px;
     }
 
-    /* Formulário de Upload Moderno */
-    .upload-card {
-      background: var(--card-solid);
-      border-radius: 20px;
+    .btn-action.primary {
+      background: var(--primary-gradient);
+      color: white;
+    }
+
+    .btn-action.whatsapp {
+      background: rgba(52, 199, 89, 0.15);
+      color: var(--accent-green);
+    }
+
+    .btn-action.danger {
+      background: rgba(255, 59, 48, 0.12);
+      color: var(--danger);
+      padding: 10px 14px;
+    }
+
+    /* Cards de Formulário */
+    .section-card {
+      background: var(--card-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-radius: 24px;
       padding: 20px;
       border: 0.5px solid var(--border);
       box-shadow: var(--shadow);
+      margin-bottom: 16px;
     }
 
     .dropzone {
       border: 2px dashed rgba(0, 122, 255, 0.4);
-      background: rgba(0, 122, 255, 0.03);
-      border-radius: 16px;
-      padding: 30px 16px;
+      background: rgba(0, 122, 255, 0.04);
+      border-radius: 20px;
+      padding: 28px 16px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.2s;
-      margin-bottom: 16px;
-    }
-
-    .dropzone:active {
-      background: rgba(0, 122, 255, 0.08);
-    }
-
-    .dropzone-icon {
-      font-size: 38px;
-      margin-bottom: 8px;
-      display: inline-block;
     }
 
     .dropzone-text {
       font-size: 15px;
       font-weight: 600;
       color: var(--primary);
+      margin-top: 8px;
     }
 
     .ai-badge {
@@ -296,9 +336,9 @@
       color: white;
       font-size: 11px;
       font-weight: 700;
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 12px;
-      margin-top: 8px;
+      margin-top: 10px;
     }
 
     .form-field {
@@ -308,7 +348,7 @@
     .form-field label {
       display: block;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-secondary);
       text-transform: uppercase;
       margin-bottom: 6px;
@@ -318,9 +358,9 @@
     .form-field input {
       width: 100%;
       padding: 14px;
-      background: rgba(118, 118, 128, 0.08);
+      background: var(--search-bg);
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       font-size: 16px;
       outline: none;
       color: var(--text);
@@ -332,24 +372,83 @@
       color: white;
       border: none;
       padding: 16px;
-      border-radius: 16px;
+      border-radius: 18px;
       font-size: 17px;
-      font-weight: 600;
-      margin-top: 20px;
+      font-weight: 700;
+      margin-top: 18px;
       box-shadow: 0 6px 20px rgba(0, 122, 255, 0.35);
-      transition: opacity 0.2s;
+      cursor: pointer;
     }
 
-    .btn-submit:active { opacity: 0.85; }
+    /* Modal PDF Integrado 2026 */
+    .pdf-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      animation: modalFade 0.25s ease;
+    }
 
-    /* Indicador de Processamento IA */
+    @keyframes modalFade {
+      from { opacity: 0; transform: scale(1.02); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .pdf-modal-header {
+      padding: max(env(safe-area-inset-top), 16px) 20px 12px;
+      background: var(--card-solid);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .pdf-modal-header h3 {
+      font-size: 17px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 250px;
+    }
+
+    .btn-close-modal {
+      background: rgba(118, 118, 128, 0.2);
+      border: none;
+      color: var(--text);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .pdf-modal-body {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      background: #323639;
+    }
+
+    .pdf-modal-body iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Loader IA */
     .ai-loader {
       display: none;
       align-items: center;
       justify-content: center;
       gap: 8px;
       font-size: 13px;
-      color: #af52de;
+      color: var(--accent-purple);
       font-weight: 600;
       margin-top: 10px;
     }
@@ -358,30 +457,30 @@
       width: 16px;
       height: 16px;
       border: 2px solid rgba(175, 82, 222, 0.2);
-      border-top-color: #af52de;
+      border-top-color: var(--accent-purple);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Tab Bar Flutuante iOS */
+    /* Floating Tab Bar 2026 estilo iOS 18/19 */
     .tab-bar {
       position: fixed;
-      bottom: max(env(safe-area-inset-bottom), 12px);
+      bottom: max(env(safe-area-inset-bottom), 14px);
       left: 20px;
       right: 20px;
       max-width: 400px;
       margin: 0 auto;
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
+      background: var(--card-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
       border: 0.5px solid var(--border);
-      border-radius: 30px;
+      border-radius: 32px;
       display: flex;
       justify-content: space-around;
       padding: 8px 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      box-shadow: var(--shadow);
     }
 
     .tab-item {
@@ -394,16 +493,13 @@
       font-size: 11px;
       font-weight: 600;
       gap: 3px;
-      width: 45%;
+      width: 30%;
       padding: 4px 0;
       border-radius: 20px;
       transition: all 0.2s;
     }
 
-    .tab-item.active {
-      color: var(--primary);
-    }
-
+    .tab-item.active { color: var(--primary); }
     .tab-item .icon { font-size: 20px; }
 
     .empty-state {
@@ -411,21 +507,15 @@
       padding: 60px 20px;
       color: var(--text-secondary);
     }
-
-    .empty-state .icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-      opacity: 0.8;
-    }
   </style>
 </head>
 <body>
 
   <header>
     <div>
-      <div class="badge-offline">Modo Offline</div>
-      <h1 id="pageTitle">Documentos</h1>
+      <h1 id="pageTitle">Comprovantes</h1>
     </div>
+    <button class="theme-toggle-btn" onclick="alternarTema()" id="themeBtn">🌙</button>
   </header>
 
   <div class="container">
@@ -437,23 +527,21 @@
         <input type="text" id="searchInput" placeholder="Pesquisar documento..." oninput="buscarDoc()">
       </div>
 
-      <!-- Filtros Rápidos -->
       <div class="chips-wrapper">
         <button class="chip active" onclick="filtrarChip(this, '')">Todos</button>
         <button class="chip" onclick="filtrarChip(this, 'ipva')">IPVA</button>
         <button class="chip" onclick="filtrarChip(this, 'cnh')">CNH</button>
         <button class="chip" onclick="filtrarChip(this, 'crlv')">CRLV</button>
-        <button class="chip" onclick="filtrarChip(this, 'seguro')">Seguro</button>
       </div>
 
       <div id="lista"></div>
     </section>
 
-    <!-- ABA 2: Novo Upload com IA -->
+    <!-- ABA 2: Upload com IA -->
     <section id="tab-upload" class="tab-content">
-      <div class="upload-card">
+      <div class="section-card">
         <div class="dropzone" onclick="document.getElementById('fileInput').click()">
-          <span class="dropzone-icon">📄</span>
+          <span style="font-size: 38px;">📄</span>
           <div class="dropzone-text" id="fileName">Toque para selecionar PDF</div>
           <div class="ai-badge">✨ Auto-Nome por IA</div>
         </div>
@@ -473,11 +561,43 @@
       </div>
     </section>
 
+    <!-- ABA 3: Ferramentas & Exportação Unificada -->
+    <section id="tab-tools" class="tab-content">
+      <div class="section-card">
+        <h3 style="margin-bottom: 6px;">📄 PDF Unificado (Dossiê)</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+          Junte todos os seus comprovantes salvos em um único arquivo PDF de várias páginas para impressão ou envio.
+        </p>
+        <button class="btn-submit" onclick="gerarPDFUnificado()">Juntar & Exportar PDF Único</button>
+      </div>
+
+      <div class="section-card">
+        <h3 style="margin-bottom: 6px;">⚙️ Backup dos Dados</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+          Exporte ou restaure todos os seus PDFs salvos em arquivo `.json`.
+        </p>
+        <button class="btn-action primary" style="width: 100%; padding: 14px; margin-bottom: 8px;" onclick="exportarBackup()">Exportar Backup (.json)</button>
+        <input type="file" id="backupInput" accept=".json" style="display: none;" onchange="importarBackup(this)">
+        <button class="btn-action" style="width: 100%; padding: 14px;" onclick="document.getElementById('backupInput').click()">Restaurar Backup</button>
+      </div>
+    </section>
+
   </div>
 
-  <!-- Tab Bar Flutuante -->
+  <!-- Modal PDF Visualizador Integrado -->
+  <div class="pdf-modal" id="pdfModal">
+    <div class="pdf-modal-header">
+      <h3 id="modalTitle">Documento</h3>
+      <button class="btn-close-modal" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="pdf-modal-body">
+      <iframe id="pdfFrame"></iframe>
+    </div>
+  </div>
+
+  <!-- Floating Navigation Bar -->
   <nav class="tab-bar">
-    <button class="tab-item active" onclick="switchTab('search', 'Documentos', this)">
+    <button class="tab-item active" onclick="switchTab('search', 'Comprovantes', this)">
       <span class="icon">📁</span>
       <span>Documentos</span>
     </button>
@@ -485,10 +605,13 @@
       <span class="icon">➕</span>
       <span>Adicionar</span>
     </button>
+    <button class="tab-item" onclick="switchTab('tools', 'Ferramentas', this)">
+      <span class="icon">🛠️</span>
+      <span>Opções</span>
+    </button>
   </nav>
 
   <script>
-    // Configura o worker do PDF.js
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
 
     let db;
@@ -503,6 +626,22 @@
       db = e.target.result;
       listarDocs();
     };
+
+    /* Alternador Dinâmico de Tema */
+    function alternarTema() {
+      const body = document.body;
+      const btn = document.getElementById("themeBtn");
+      
+      if (body.classList.contains("theme-dark")) {
+        body.classList.remove("theme-dark");
+        body.classList.add("theme-light");
+        btn.innerText = "☀️";
+      } else {
+        body.classList.remove("theme-light");
+        body.classList.add("theme-dark");
+        btn.innerText = "🌙";
+      }
+    }
 
     function switchTab(tab, title, btn) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -527,7 +666,6 @@
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         const page = await pdf.getPage(1);
         
-        // Renderiza página em um Canvas para o OCR
         const viewport = page.getViewport({ scale: 1.5 });
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
@@ -536,7 +674,6 @@
 
         await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-        // IA / OCR lê a imagem gerada do PDF
         const worker = await Tesseract.createWorker('por');
         const ret = await worker.recognize(canvas);
         await worker.terminate();
@@ -544,7 +681,6 @@
         const texto = ret.data.text.toLowerCase();
         let nomeSugerido = "";
 
-        // Padrões de reconhecimento inteligente
         if (texto.includes("ipva")) nomeSugerido = "IPVA " + extrairAno(texto);
         else if (texto.includes("cnh")) nomeSugerido = "CNH Digital";
         else if (texto.includes("crlv") || texto.includes("licenciamento")) nomeSugerido = "CRLV " + extrairAno(texto);
@@ -583,7 +719,7 @@
         document.getElementById("fileInput").value = "";
         document.getElementById("fileName").innerText = "Toque para selecionar PDF";
         listarDocs();
-        switchTab('search', 'Documentos', document.querySelectorAll('.tab-item')[0]);
+        switchTab('search', 'Comprovantes', document.querySelectorAll('.tab-item')[0]);
       };
     }
 
@@ -598,19 +734,21 @@
         if (cursor) {
           if (cursor.value.nome.includes(filtro.toLowerCase())) {
             encontrou = true;
-            const url = URL.createObjectURL(cursor.value.blob);
             lista.innerHTML += `
               <div class="card">
-                <div class="card-left">
-                  <div class="card-icon">📄</div>
-                  <div class="card-meta">
-                    <h3>${cursor.value.displayNome}</h3>
-                    <p>Salvo em ${cursor.value.data}</p>
+                <div class="card-header">
+                  <div class="card-left">
+                    <div class="card-icon">📄</div>
+                    <div class="card-meta">
+                      <h3>${cursor.value.displayNome}</h3>
+                      <p>Salvo em ${cursor.value.data}</p>
+                    </div>
                   </div>
                 </div>
-                <div class="card-actions">
-                  <a href="${url}" target="_blank" class="btn-view">Visualizar</a>
-                  <button class="btn-delete" onclick="deletarDoc('${cursor.value.id}')">✕</button>
+                <div class="card-actions-grid">
+                  <button class="btn-action primary" onclick="abrirModal('${cursor.value.id}')">Visualizar</button>
+                  <button class="btn-action whatsapp" onclick="compartilharWhatsApp('${cursor.value.displayNome}', '${cursor.value.data}')">WhatsApp</button>
+                  <button class="btn-action danger" onclick="deletarDoc('${cursor.value.id}')">✕</button>
                 </div>
               </div>`;
           }
@@ -618,11 +756,37 @@
         } else if (!encontrou) {
           lista.innerHTML = `
             <div class="empty-state">
-              <div class="icon">🔍</div>
-              <p>Nenhum comprovante encontrado.</p>
+              <div style="font-size: 44px; margin-bottom: 8px;">📂</div>
+              <p>Nenhum documento encontrado.</p>
             </div>`;
         }
       };
+    }
+
+    /* Compartilhamento Rápido no WhatsApp com Mensagem Formata */
+    function compartilharWhatsApp(nome, data) {
+      const texto = `*📄 Comprovante do Veículo*\n\n*Documento:* ${nome}\n*Data de Registro:* ${data}\n\n_Enviado via App Comprovantes 2026_`;
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+      window.open(url, '_blank');
+    }
+
+    /* Modal Integrado */
+    function abrirModal(id) {
+      const tx = db.transaction("docs", "readonly");
+      tx.objectStore("docs").get(id).onsuccess = (e) => {
+        const doc = e.target.result;
+        if (doc) {
+          const url = URL.createObjectURL(doc.blob);
+          document.getElementById("modalTitle").innerText = doc.displayNome;
+          document.getElementById("pdfFrame").src = url;
+          document.getElementById("pdfModal").style.display = "flex";
+        }
+      };
+    }
+
+    function fecharModal() {
+      document.getElementById("pdfModal").style.display = "none";
+      document.getElementById("pdfFrame").src = "";
     }
 
     function deletarDoc(id) {
@@ -642,6 +806,114 @@
       el.classList.add('active');
       document.getElementById("searchInput").value = termo;
       buscarDoc();
+    }
+
+    /* Geração de PDF Unificado (Exportação Única) */
+    async function gerarPDFUnificado() {
+      const tx = db.transaction("docs", "readonly");
+      const pdfs = [];
+
+      tx.objectStore("docs").openCursor().onsuccess = async (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+          pdfs.push(cursor.value.blob);
+          cursor.continue();
+        } else {
+          if (pdfs.length === 0) return alert("Nenhum documento para unir.");
+
+          const mergedPdf = await PDFLib.PDFDocument.create();
+
+          for (const pdfBlob of pdfs) {
+            const arrayBuffer = await pdfBlob.arrayBuffer();
+            const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+            const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+            copiedPages.forEach((page) => mergedPdf.addPage(page));
+          }
+
+          const mergedPdfBytes = await mergedPdf.save();
+          const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+
+          document.getElementById("modalTitle").innerText = "Dossiê PDF Unificado";
+          document.getElementById("pdfFrame").src = url;
+          document.getElementById("pdfModal").style.display = "flex";
+        }
+      };
+    }
+
+    /* Backup e Restauração */
+    function exportarBackup() {
+      const tx = db.transaction("docs", "readonly");
+      const todosDocs = [];
+
+      tx.objectStore("docs").openCursor().onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+          const doc = cursor.value;
+          const reader = new FileReader();
+          reader.readAsDataURL(doc.blob);
+          reader.onloadend = () => {
+            todosDocs.push({
+              id: doc.id,
+              nome: doc.nome,
+              displayNome: doc.displayNome,
+              data: doc.data,
+              base64: reader.result
+            });
+          };
+          cursor.continue();
+        } else {
+          setTimeout(() => {
+            if (todosDocs.length === 0) return alert("Nenhum documento para exportar.");
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(todosDocs));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `backup_comprovantes_${Date.now()}.json`);
+            dlAnchorElem.click();
+          }, 500);
+        }
+      };
+    }
+
+    function importarBackup(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const docsImportados = JSON.parse(e.target.result);
+          const tx = db.transaction("docs", "readwrite");
+
+          docsImportados.forEach(doc => {
+            const byteString = atob(doc.base64.split(',')[1]);
+            const mimeString = doc.base64.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+              ia[i] = byteString.charCodeAt(i);
+            }
+            const blob = new Blob([ab], { type: mimeString });
+
+            tx.objectStore("docs").put({
+              id: doc.id || Date.now().toString(),
+              nome: doc.nome,
+              displayNome: doc.displayNome,
+              data: doc.data,
+              blob: blob
+            });
+          });
+
+          tx.oncomplete = () => {
+            alert("Backup restaurado!");
+            listarDocs();
+            switchTab('search', 'Comprovantes', document.querySelectorAll('.tab-item')[0]);
+          };
+        } catch (err) {
+          alert("Arquivo de backup inválido.");
+        }
+      };
+      reader.readAsText(file);
     }
 
     if ("serviceWorker" in navigator) {
