@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-  <title>Comprovantes 2026</title>
+  <title>Comprovantes</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="logo.jpg">
   <link rel="icon" type="image/jpeg" href="logo.jpg">
@@ -11,7 +11,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <!-- Dependências: PDF.js + Tesseract OCR + pdf-lib -->
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -24,7 +23,6 @@
       --accent-purple: #af52de;
       --danger: #ff3b30;
       
-      /* Modo Claro (Default) */
       --bg: #f2f2f7;
       --card-bg: rgba(255, 255, 255, 0.82);
       --card-solid: #ffffff;
@@ -155,11 +153,21 @@
       display: flex;
       gap: 8px;
       overflow-x: auto;
-      padding-bottom: 14px;
-      margin-bottom: 8px;
+      padding-bottom: 10px;
+      margin-bottom: 6px;
       scrollbar-width: none;
     }
     .chips-wrapper::-webkit-scrollbar { display: none; }
+
+    .subchips-wrapper {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .subchips-wrapper::-webkit-scrollbar { display: none; }
 
     .chip {
       background: var(--card-solid);
@@ -178,6 +186,23 @@
       color: white;
       border-color: transparent;
       box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    }
+
+    .subchip {
+      background: rgba(118, 118, 128, 0.12);
+      padding: 6px 12px;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border: none;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .subchip.active {
+      background: var(--text);
+      color: var(--bg);
     }
 
     .card {
@@ -244,9 +269,15 @@
     }
 
     .card-meta p {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-secondary);
       margin-top: 2px;
+    }
+
+    .badges-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
     }
 
     .cat-badge {
@@ -256,7 +287,17 @@
       padding: 3px 8px;
       border-radius: 10px;
       color: white;
-      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    .subcat-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background: rgba(118, 118, 128, 0.18);
+      color: var(--text);
       text-transform: uppercase;
     }
 
@@ -375,7 +416,6 @@
       cursor: pointer;
     }
 
-    /* Modal PDF com Suporte a Zoom Nativo e Botões */
     .pdf-modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -445,7 +485,6 @@
       margin-left: 8px;
     }
 
-    /* ÁREA DE CANVAS DO PDF PARA ZOOM FLUIDO */
     .pdf-modal-body {
       flex: 1;
       width: 100%;
@@ -491,26 +530,36 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .cat-item {
+      padding: 12px;
+      background: var(--search-bg);
+      border-radius: 14px;
+      margin-bottom: 10px;
+    }
+
+    .cat-item-main {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px;
-      background: var(--search-bg);
-      border-radius: 12px;
-      margin-bottom: 8px;
+      font-weight: 700;
     }
 
-    .cat-item-left {
+    .subcat-list {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 0.5px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .subcat-tag {
+      font-size: 11px;
+      background: var(--card-solid);
+      padding: 4px 8px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-weight: 600;
-    }
-
-    .cat-color-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
+      gap: 6px;
     }
 
     .tab-bar {
@@ -575,9 +624,13 @@
         <input type="text" id="searchInput" placeholder="Pesquisar documento..." oninput="buscarDoc()">
       </div>
 
+      <!-- Categorias Dinâmicas Nível 1 -->
       <div class="chips-wrapper" id="chipsContainer">
-        <button class="chip active" onclick="filtrarChip(this, '')">Todos</button>
+        <button class="chip active" onclick="filtrarCategoria(this, '')">Todos</button>
       </div>
+
+      <!-- Subcategorias Dinâmicas Nível 2 -->
+      <div class="subchips-wrapper" id="subchipsContainer" style="display: none;"></div>
 
       <div id="lista"></div>
     </section>
@@ -603,8 +656,15 @@
         </div>
 
         <div class="form-field">
-          <label>Categoria do Documento</label>
-          <select id="docCategorySelect">
+          <label>Categoria Principal</label>
+          <select id="docCategorySelect" onchange="atualizarSelectSubcategorias()">
+            <option value="Geral">Geral</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Subcategoria</label>
+          <select id="docSubCategorySelect">
             <option value="Geral">Geral</option>
           </select>
         </div>
@@ -613,20 +673,35 @@
       </div>
     </section>
 
-    <!-- ABA 3: Opções & Categorias -->
+    <!-- ABA 3: Opções, Categorias & Subcategorias -->
     <section id="tab-tools" class="tab-content">
+      
+      <!-- Criar Categoria Principal -->
       <div class="section-card">
-        <h3 style="margin-bottom: 8px;">🏷️ Gerenciar Categorias</h3>
-        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
-          Crie categorias personalizadas para organizar seus comprovantes.
-        </p>
-        
+        <h3 style="margin-bottom: 8px;">🏷️ Nova Categoria Principal</h3>
         <div class="form-field" style="margin-top: 0;">
-          <input type="text" id="newCatName" placeholder="Nome da categoria (ex: Hilux, Moto)">
+          <input type="text" id="newCatName" placeholder="Ex: Hilux, Moto, Pessoal">
         </div>
-        <button class="btn-submit" style="margin-top: 10px; padding: 12px;" onclick="criarCategoria()">Criar Nova Categoria</button>
+        <button class="btn-submit" style="margin-top: 10px; padding: 12px;" onclick="criarCategoria()">Criar Categoria</button>
+      </div>
 
-        <div style="margin-top: 16px;" id="listaCategoriasGerenciador"></div>
+      <!-- Criar Subcategoria -->
+      <div class="section-card">
+        <h3 style="margin-bottom: 8px;">📂 Nova Subcategoria</h3>
+        <div class="form-field" style="margin-top: 0;">
+          <label>Selecione a Categoria Pai</label>
+          <select id="parentCategorySelect"></select>
+        </div>
+        <div class="form-field">
+          <input type="text" id="newSubCatName" placeholder="Ex: IPVA, Seguro, Revisão">
+        </div>
+        <button class="btn-submit" style="margin-top: 10px; padding: 12px; background: linear-gradient(135deg, #34c759 0%, #007aff 100%);" onclick="criarSubCategoria()">Adicionar Subcategoria</button>
+      </div>
+
+      <!-- Lista do Gerenciador -->
+      <div class="section-card">
+        <h3 style="margin-bottom: 12px;">📋 Minhas Categorias</h3>
+        <div id="listaCategoriasGerenciador"></div>
       </div>
 
       <div class="section-card">
@@ -647,7 +722,7 @@
 
   </div>
 
-  <!-- Modal PDF com Canvas Renderizado & Controles de Zoom -->
+  <!-- Modal PDF -->
   <div class="pdf-modal" id="pdfModal">
     <div class="pdf-modal-header">
       <h3 id="modalTitle">Documento</h3>
@@ -663,7 +738,7 @@
     </div>
   </div>
 
-  <!-- Floating Navigation Bar -->
+  <!-- Tab Bar -->
   <nav class="tab-bar">
     <button class="tab-item active" onclick="switchTab('search', 'Documentos', this)">
       <span class="icon">📁</span>
@@ -684,15 +759,18 @@
 
     const CORES_DISPONIVEIS = ['#007aff', '#ff9500', '#34c759', '#af52de', '#ff2d55', '#5856d6', '#00c7be', '#ff3b30'];
 
-    let categorias = JSON.parse(localStorage.getItem('minhas_categorias')) || [
-      { nome: 'Geral', cor: '#007aff' }
+    let categorias = JSON.parse(localStorage.getItem('minhas_categorias_v2')) || [
+      { nome: 'Geral', cor: '#007aff', subcategorias: ['Geral'] }
     ];
+
+    let categoriaFiltroAtiva = "";
+    let subcategoriaFiltroAtiva = "";
 
     let currentPdfDoc = null;
     let currentScale = 1.2;
 
     let db;
-    const request = indexedDB.open("ComprovantesDB", 1);
+    const request = indexedDB.open("ComprovantesDB_v2", 1);
 
     request.onupgradeneeded = (e) => {
       db = e.target.result;
@@ -746,34 +824,67 @@
       document.getElementById('pageTitle').innerText = title;
     }
 
+    /* Atualização dos Seletor e Filtros de Categorias / Subcategorias */
     function atualizarInterfaceCategorias() {
+      // 1. Chips da Aba Documentos
       const containerChips = document.getElementById("chipsContainer");
-      containerChips.innerHTML = `<button class="chip active" onclick="filtrarChip(this, '')">Todos</button>`;
+      containerChips.innerHTML = `<button class="chip active" onclick="filtrarCategoria(this, '')">Todos</button>`;
       
       categorias.forEach(cat => {
-        containerChips.innerHTML += `<button class="chip" onclick="filtrarChip(this, '${cat.nome.toLowerCase()}')">${cat.nome}</button>`;
+        containerChips.innerHTML += `<button class="chip" onclick="filtrarCategoria(this, '${cat.nome}')">${cat.nome}</button>`;
       });
 
-      const select = document.getElementById("docCategorySelect");
-      select.innerHTML = "";
+      // 2. Selects da Aba Upload
+      const selectCat = document.getElementById("docCategorySelect");
+      const selectParentCat = document.getElementById("parentCategorySelect");
+      
+      selectCat.innerHTML = "";
+      selectParentCat.innerHTML = "";
+
       categorias.forEach(cat => {
-        select.innerHTML += `<option value="${cat.nome}">${cat.nome}</option>`;
+        selectCat.innerHTML += `<option value="${cat.nome}">${cat.nome}</option>`;
+        selectParentCat.innerHTML += `<option value="${cat.nome}">${cat.nome}</option>`;
       });
 
+      atualizarSelectSubcategorias();
+
+      // 3. Lista Gerenciadora em Opções
       const listaGerenciador = document.getElementById("listaCategoriasGerenciador");
       listaGerenciador.innerHTML = "";
       categorias.forEach((cat, index) => {
+        const subsHTML = (cat.subcategorias || []).map((sub, subIndex) => 
+          `<span class="subcat-tag">
+            ${sub} 
+            ${subIndex > 0 ? `<b style="color: var(--danger); cursor: pointer;" onclick="deletarSubCategoria(${index},${subIndex})">✕</b>` : ''}
+          </span>`
+        ).join("");
+
         listaGerenciador.innerHTML += `
           <div class="cat-item">
-            <div class="cat-item-left">
-              <div class="cat-color-dot" style="background: ${cat.cor};"></div>
-              <span>${cat.nome}</span>
+            <div class="cat-item-main">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${cat.cor};"></div>
+                <span>${cat.nome}</span>
+              </div>
+              ${index > 0 ? `<button class="btn-action danger" style="padding: 4px 8px; font-size: 11px;" onclick="deletarCategoria(${index})">Deletar</button>` : `<span style="font-size: 11px; color: var(--text-secondary);">Padrão</span>`}
             </div>
-            ${index > 0 ? `<button class="btn-action danger" onclick="deletarCategoria(${index})">Deletar</button>` : `<span style="font-size: 11px; color: var(--text-secondary);">Padrão</span>`}
+            <div class="subcat-list">${subsHTML}</div>
           </div>`;
       });
 
-      localStorage.setItem('minhas_categorias', JSON.stringify(categorias));
+      localStorage.setItem('minhas_categorias_v2', JSON.stringify(categorias));
+    }
+
+    function atualizarSelectSubcategorias() {
+      const catNome = document.getElementById("docCategorySelect").value;
+      const cat = categorias.find(c => c.nome === catNome);
+      const selectSub = document.getElementById("docSubCategorySelect");
+      selectSub.innerHTML = "";
+
+      const subs = cat ? (cat.subcategorias || ['Geral']) : ['Geral'];
+      subs.forEach(sub => {
+        selectSub.innerHTML += `<option value="${sub}">${sub}</option>`;
+      });
     }
 
     function criarCategoria() {
@@ -782,11 +893,30 @@
       if (!nome) return alert("Digite um nome para a categoria!");
 
       const cor = CORES_DISPONIVEIS[categorias.length % CORES_DISPONIVEIS.length];
-      categorias.push({ nome: nome, cor: cor });
+      categorias.push({ nome: nome, cor: cor, subcategorias: ['Geral'] });
       input.value = "";
       
       atualizarInterfaceCategorias();
       alert("Categoria criada!");
+    }
+
+    function criarSubCategoria() {
+      const parentName = document.getElementById("parentCategorySelect").value;
+      const subInput = document.getElementById("newSubCatName");
+      const subNome = subInput.value.trim();
+
+      if (!subNome) return alert("Digite um nome para a subcategoria!");
+
+      const cat = categorias.find(c => c.nome === parentName);
+      if (cat) {
+        if (!cat.subcategorias) cat.subcategorias = ['Geral'];
+        if (cat.subcategorias.includes(subNome)) return alert("Subcategoria já existe!");
+
+        cat.subcategorias.push(subNome);
+        subInput.value = "";
+        atualizarInterfaceCategorias();
+        alert("Subcategoria adicionada!");
+      }
     }
 
     function deletarCategoria(index) {
@@ -797,11 +927,52 @@
       }
     }
 
+    function deletarSubCategoria(catIndex, subIndex) {
+      if (confirm(`Apagar a subcategoria "${categorias[catIndex].subcategorias[subIndex]}"?`)) {
+        categorias[catIndex].subcategorias.splice(subIndex, 1);
+        atualizarInterfaceCategorias();
+        listarDocs();
+      }
+    }
+
     function obterCorCategoria(nomeCat) {
       const cat = categorias.find(c => c.nome.toLowerCase() === (nomeCat || "").toLowerCase());
       return cat ? cat.cor : '#007aff';
     }
 
+    /* Filtros Encadeados por Categoria e Subcategoria */
+    function filtrarCategoria(el, catNome) {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+
+      categoriaFiltroAtiva = catNome;
+      subcategoriaFiltroAtiva = "";
+
+      const subContainer = document.getElementById("subchipsContainer");
+      if (!catNome) {
+        subContainer.style.display = "none";
+      } else {
+        const cat = categorias.find(c => c.nome === catNome);
+        const subs = cat ? (cat.subcategorias || ['Geral']) : [];
+
+        subContainer.innerHTML = `<button class="subchip active" onclick="filtrarSubcategoria(this, '')">Todas de ${catNome}</button>`;
+        subs.forEach(sub => {
+          subContainer.innerHTML += `<button class="subchip" onclick="filtrarSubcategoria(this, '${sub}')">${sub}</button>`;
+        });
+        subContainer.style.display = "flex";
+      }
+
+      listarDocs();
+    }
+
+    function filtrarSubcategoria(el, subNome) {
+      document.querySelectorAll('.subchip').forEach(s => s.classList.remove('active'));
+      el.classList.add('active');
+      subcategoriaFiltroAtiva = subNome;
+      listarDocs();
+    }
+
+    /* Leitura Inteligente IA */
     async function processarArquivoIA() {
       const file = document.getElementById("fileInput").files[0];
       if (!file) return;
@@ -853,17 +1024,22 @@
       const file = document.getElementById("fileInput").files[0];
       const nome = document.getElementById("docName").value.trim();
       const categoria = document.getElementById("docCategorySelect").value;
+      const subcategoria = document.getElementById("docSubCategorySelect").value;
 
       if (!file || !nome) return alert("Selecione o PDF e confirme o nome!");
 
+      const timestampAtual = Date.now();
       const tx = db.transaction("docs", "readwrite");
+
       tx.objectStore("docs").put({ 
-        id: Date.now().toString(),
+        id: timestampAtual.toString(),
+        timestamp: timestampAtual,
         nome: nome.toLowerCase(), 
         displayNome: nome, 
         categoria: categoria,
+        subcategoria: subcategoria,
         blob: file,
-        data: new Date().toLocaleDateString('pt-BR')
+        data: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})
       });
       
       tx.oncomplete = () => {
@@ -875,50 +1051,69 @@
       };
     }
 
-    function listarDocs(filtro = "") {
+    /* ORDENAÇÃO DECRESCENTE POR DATA DE UPLOAD (MAIS RECENTES NO TOPO) */
+    function listarDocs() {
       const lista = document.getElementById("lista");
       lista.innerHTML = "";
-      let encontrou = false;
+      
+      const termoBusca = document.getElementById("searchInput").value.toLowerCase();
+      const todosDocs = [];
 
       const tx = db.transaction("docs", "readonly");
       tx.objectStore("docs").openCursor().onsuccess = (e) => {
         const cursor = e.target.result;
         if (cursor) {
-          const doc = cursor.value;
-          const catNome = doc.categoria || "Geral";
-          const cor = obterCorCategoria(catNome);
+          todosDocs.push(cursor.value);
+          cursor.continue();
+        } else {
+          // Ordena por timestamp decrescente (mais recente primeiro)
+          todosDocs.sort((a, b) => (b.timestamp || Number(b.id)) - (a.timestamp || Number(a.id)));
 
-          const buscaMatch = doc.nome.includes(filtro.toLowerCase()) || catNome.toLowerCase().includes(filtro.toLowerCase());
+          let encontrou = false;
 
-          if (buscaMatch) {
-            encontrou = true;
-            lista.innerHTML += `
-              <div class="card">
-                <div class="card-stripe" style="background: ${cor};"></div>
-                <div class="card-header">
-                  <div class="card-left">
-                    <div class="card-icon" style="background: linear-gradient(135deg, ${cor} 0%, #5856d6 100%);">📄</div>
-                    <div class="card-meta">
-                      <h3>${doc.displayNome}</h3>
-                      <span class="cat-badge" style="background: ${cor};">${catNome}</span>
-                      <p>Salvo em ${doc.data}</p>
+          todosDocs.forEach(doc => {
+            const catNome = doc.categoria || "Geral";
+            const subcatNome = doc.subcategoria || "Geral";
+            const cor = obterCorCategoria(catNome);
+
+            const matchTexto = doc.nome.includes(termoBusca) || catNome.toLowerCase().includes(termoBusca) || subcatNome.toLowerCase().includes(termoBusca);
+            const matchCategoria = !categoriaFiltroAtiva || catNome === categoriaFiltroAtiva;
+            const matchSubcategoria = !subcategoriaFiltroAtiva || subcatNome === subcategoriaFiltroAtiva;
+
+            if (matchTexto && matchCategoria && matchSubcategoria) {
+              encontrou = true;
+              lista.innerHTML += `
+                <div class="card">
+                  <div class="card-stripe" style="background: ${cor};"></div>
+                  <div class="card-header">
+                    <div class="card-left">
+                      <div class="card-icon" style="background: linear-gradient(135deg, ${cor} 0%, #5856d6 100%);">📄</div>
+                      <div class="card-meta">
+                        <h3>${doc.displayNome}</h3>
+                        <div class="badges-row">
+                          <span class="cat-badge" style="background: ${cor};">${catNome}</span>
+                          <span class="subcat-badge">${subcatNome}</span>
+                        </div>
+                        <p>Enviado em ${doc.data}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="card-actions-grid">
-                  <button class="btn-action primary" onclick="abrirModal('${doc.id}')">Visualizar</button>
-                  <button class="btn-action whatsapp" onclick="compartilharWhatsApp('${doc.displayNome}', '${doc.data}')">WhatsApp</button>
-                  <button class="btn-action danger" onclick="deletarDoc('${doc.id}')">✕</button>
-                </div>
+                  <div class="card-actions-grid">
+                    <button class="btn-action primary" onclick="abrirModal('${doc.id}')">Visualizar</button>
+                    <button class="btn-action whatsapp" onclick="compartilharWhatsApp('${doc.displayNome}', '${doc.data}')">WhatsApp</button>
+                    <button class="btn-action danger" onclick="deletarDoc('${doc.id}')">✕</button>
+                  </div>
+                </div>`;
+            }
+          });
+
+          if (!encontrou) {
+            lista.innerHTML = `
+              <div class="empty-state">
+                <div style="font-size: 44px; margin-bottom: 8px;">📂</div>
+                <p>Nenhum documento encontrado.</p>
               </div>`;
           }
-          cursor.continue();
-        } else if (!encontrou) {
-          lista.innerHTML = `
-            <div class="empty-state">
-              <div style="font-size: 44px; margin-bottom: 8px;">📂</div>
-              <p>Nenhum documento encontrado.</p>
-            </div>`;
         }
       };
     }
@@ -929,7 +1124,7 @@
       window.open(url, '_blank');
     }
 
-    /* RENDERIZADOR NATIVO DE CANVAS COM SUPORTE A ZOOM */
+    /* RENDERIZADOR NATIVO CANVAS COM ZOOM */
     async function abrirModal(id) {
       const tx = db.transaction("docs", "readonly");
       tx.objectStore("docs").get(id).onsuccess = async (e) => {
@@ -985,14 +1180,7 @@
     }
 
     function buscarDoc() {
-      listarDocs(document.getElementById("searchInput").value);
-    }
-
-    function filtrarChip(el, termo) {
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-      el.classList.add('active');
-      document.getElementById("searchInput").value = termo;
-      buscarDoc();
+      listarDocs();
     }
 
     async function gerarPDFUnificado() {
@@ -1043,9 +1231,11 @@
           reader.onloadend = () => {
             todosDocs.push({
               id: doc.id,
+              timestamp: doc.timestamp,
               nome: doc.nome,
               displayNome: doc.displayNome,
               categoria: doc.categoria || "Geral",
+              subcategoria: doc.subcategoria || "Geral",
               data: doc.data,
               base64: reader.result
             });
@@ -1086,9 +1276,11 @@
 
             tx.objectStore("docs").put({
               id: doc.id || Date.now().toString(),
+              timestamp: doc.timestamp || Date.now(),
               nome: doc.nome,
               displayNome: doc.displayNome,
               categoria: doc.categoria || "Geral",
+              subcategoria: doc.subcategoria || "Geral",
               data: doc.data,
               blob: blob
             });
