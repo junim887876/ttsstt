@@ -3,623 +3,401 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Lembrente</title>
-  
+  <title>Meus Comprovantes</title>
   <link rel="manifest" href="manifest.json">
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <meta name="theme-color" content="#f2f2f7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   
   <style>
     :root {
-      --bg-dark: #000000;
-      --glass-surface: rgba(255, 255, 255, 0.06);
-      --glass-border: rgba(255, 255, 255, 0.12);
-      
-      --apple-cyan: #64D2FF;
-      --apple-blue: #0A84FF;
-      --apple-green: #30D158;
-      --apple-red: #FF453A;
-      
-      --text-primary: #FFFFFF;
-      --text-secondary: rgba(255, 255, 255, 0.65);
-      --text-tertiary: rgba(255, 255, 255, 0.4);
-      
-      --radius-xl: 28px;
-      --radius-lg: 20px;
-      --radius-md: 14px;
-      --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-      --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      --primary: #007aff;
+      --bg: #f2f2f7;
+      --card-bg: #ffffff;
+      --text: #000000;
+      --text-secondary: #8e8e93;
+      --border: #e5e5ea;
+      --danger: #ff3b30;
     }
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      -webkit-font-smoothing: antialiased;
     }
 
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: calc(env(safe-area-inset-top, 59px) + 12px);
-      padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 24px);
-      padding-left: 18px;
-      padding-right: 18px;
-      overflow-x: hidden;
-      position: relative;
     }
 
-    .ambient-glow {
-      position: fixed;
-      top: -120px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(10, 132, 255, 0.20) 0%, rgba(0,0,0,0) 80%);
-      filter: blur(80px);
-      z-index: -1;
-      pointer-events: none;
+    .container {
+      padding: 16px;
+      max-width: 500px;
+      margin: 0 auto;
     }
 
-    .header-bar {
-      width: 100%;
-      max-width: 414px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: var(--glass-surface);
-      backdrop-filter: blur(30px) saturate(200%);
-      -webkit-backdrop-filter: blur(30px) saturate(200%);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-xl);
-      margin-bottom: 20px;
-      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+    header {
+      padding: 12px 16px 8px;
     }
 
-    .header-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo-img {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      object-fit: cover;
-      border: 1px solid var(--glass-border);
-    }
-
-    .brand-title {
-      font-size: 1.05rem;
+    header h1 {
+      font-size: 34px;
       font-weight: 700;
-      letter-spacing: -0.3px;
+      letter-spacing: -0.5px;
     }
 
-    .brand-status {
-      font-size: 0.72rem;
-      color: var(--apple-cyan);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-weight: 500;
+    /* Sistema de Abas */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.25s ease-in-out;
     }
 
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background-color: var(--apple-green);
-      box-shadow: 0 0 8px var(--apple-green);
-    }
-
-    .btn-notify {
-      background: rgba(10, 132, 255, 0.15);
-      border: 1px solid rgba(10, 132, 255, 0.4);
-      color: var(--apple-cyan);
-      padding: 7px 13px;
-      border-radius: 18px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s var(--ease-smooth);
-    }
-
-    .btn-notify:active {
-      transform: scale(0.92);
-      background: rgba(10, 132, 255, 0.3);
-    }
-
-    .app-viewport {
-      width: 100%;
-      max-width: 414px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .input-card {
-      background: var(--glass-surface);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-xl);
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-    }
-
-    .custom-input {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: var(--radius-lg);
-      padding: 14px 16px;
-      color: #FFF;
-      font-size: 0.98rem;
-      outline: none;
-      transition: all 0.3s var(--ease-smooth);
-    }
-
-    .custom-input::placeholder {
-      color: var(--text-tertiary);
-    }
-
-    .custom-input:focus {
-      border-color: var(--apple-blue);
-      background: rgba(0, 0, 0, 0.65);
-      box-shadow: 0 0 16px rgba(10, 132, 255, 0.25);
-    }
-
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 2px 4px;
-    }
-
-    .toggle-title {
-      font-size: 0.88rem;
-      font-weight: 600;
-    }
-
-    .toggle-sub {
-      font-size: 0.73rem;
-      color: var(--text-tertiary);
+    .tab-content.active {
       display: block;
     }
 
-    .ios-switch {
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Barra de Busca estilo iOS */
+    .search-box {
       position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 30px;
+      margin-bottom: 16px;
     }
 
-    .ios-switch input { opacity: 0; width: 0; height: 0; }
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px 12px 40px;
+      background: #e3e3e8;
+      border: none;
+      border-radius: 12px;
+      font-size: 17px;
+      outline: none;
+      color: var(--text);
+    }
 
-    .switch-slider {
+    .search-box::before {
+      content: '🔍';
       position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(255, 255, 255, 0.15);
-      transition: 0.3s var(--ease-smooth);
-      border-radius: 30px;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      opacity: 0.5;
     }
 
-    .switch-slider:before {
-      position: absolute;
-      content: "";
-      height: 26px; width: 26px;
-      left: 2px; bottom: 2px;
-      background-color: #FFFFFF;
-      transition: 0.3s var(--ease-spring);
-      border-radius: 50%;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+    /* Cards de Documento */
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: transform 0.15s ease;
     }
 
-    input:checked + .switch-slider {
-      background-color: var(--apple-green);
+    .card:active {
+      transform: scale(0.98);
     }
 
-    input:checked + .switch-slider:before {
-      transform: translateX(20px);
-    }
-
-    .date-picker-wrapper {
-      max-height: 0;
-      opacity: 0;
+    .card-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       overflow: hidden;
-      transition: all 0.35s var(--ease-smooth);
     }
 
-    .date-picker-wrapper.open {
-      max-height: 80px;
-      opacity: 1;
+    .card-icon {
+      font-size: 28px;
+      background: #e1f0ff;
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .card-details h3 {
+      font-size: 17px;
+      font-weight: 600;
+      text-transform: capitalize;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+
+    .card-details p {
+      font-size: 13px;
+      color: var(--text-secondary);
       margin-top: 2px;
     }
 
-    .custom-date-input {
-      width: 100%;
-      background: rgba(10, 132, 255, 0.1);
-      border: 1px solid rgba(10, 132, 255, 0.3);
-      border-radius: var(--radius-md);
-      padding: 12px;
-      color: var(--apple-cyan);
-      font-size: 0.92rem;
-      outline: none;
-      color-scheme: dark;
-    }
-
-    .btn-create {
-      background: linear-gradient(135deg, var(--apple-blue) 0%, #0056B3 100%);
+    .btn-view {
+      background: #e1f0ff;
+      color: var(--primary);
       border: none;
-      color: #FFFFFF;
-      padding: 15px;
-      border-radius: var(--radius-lg);
-      font-weight: 700;
-      font-size: 0.95rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 8px 20px rgba(10, 132, 255, 0.35);
-      transition: all 0.2s var(--ease-smooth);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
     }
 
-    .btn-create:active { transform: scale(0.97); }
-
-    .section-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 4px;
+    /* Formulário de Upload */
+    .form-group {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
 
-    .section-title {
-      font-size: 0.88rem;
-      font-weight: 700;
+    .form-group label {
+      display: block;
+      font-size: 13px;
       color: var(--text-secondary);
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      font-weight: 600;
+      margin-bottom: 8px;
     }
 
-    .count-pill {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 3px 10px;
+    .form-group input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .file-dropzone {
+      border: 2px dashed var(--primary);
+      background: #f0f7ff;
       border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--apple-cyan);
-    }
-
-    .reminders-feed {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .task-card {
-      background: var(--glass-surface);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-lg);
-      padding: 16px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s var(--ease-smooth);
-    }
-
-    .task-card.completed {
-      background: rgba(48, 209, 88, 0.05);
-      border-color: rgba(48, 209, 88, 0.25);
-      opacity: 0.55;
-    }
-
-    .task-card.completed .task-text {
-      text-decoration: line-through;
-      color: var(--text-tertiary);
-    }
-
-    .task-body {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      flex: 1;
-      padding-right: 12px;
-    }
-
-    .task-text {
-      font-size: 0.98rem;
-      font-weight: 500;
-      color: var(--text-primary);
-      line-height: 1.35;
-      word-break: break-word;
-    }
-
-    .task-time-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.74rem;
-      color: var(--apple-cyan);
-      font-weight: 600;
-      background: rgba(100, 210, 255, 0.1);
-      padding: 3px 8px;
-      border-radius: 8px;
-      width: fit-content;
-    }
-
-    .task-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 0.95rem;
-      transition: transform 0.2s var(--ease-spring);
-    }
-
-    .btn-icon:active { transform: scale(0.85); }
-
-    .btn-success {
-      background: rgba(48, 209, 88, 0.15);
-      border: 1px solid rgba(48, 209, 88, 0.4);
-      color: var(--apple-green);
-    }
-
-    .btn-danger {
-      background: rgba(255, 69, 58, 0.15);
-      border: 1px solid rgba(255, 69, 58, 0.4);
-      color: var(--apple-red);
-    }
-
-    .empty-card {
+      padding: 24px;
       text-align: center;
-      padding: 36px 20px;
-      background: var(--glass-surface);
-      border: 1px dashed var(--glass-border);
-      border-radius: var(--radius-xl);
-      color: var(--text-tertiary);
-      font-size: 0.88rem;
+      cursor: pointer;
+      margin-bottom: 16px;
+    }
+
+    .file-dropzone p {
+      font-size: 15px;
+      color: var(--primary);
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,122,255,0.3);
+    }
+
+    .btn-submit:active {
+      opacity: 0.8;
+    }
+
+    /* Barra de Navegação Inferior estilo iOS */
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 0.5px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding-top: 8px;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .tab-item {
+      border: none;
+      background: none;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 500;
+      gap: 4px;
+      width: 50%;
     }
 
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(255,255,255,0.2);
-      border-top-color: #FFF;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    .tab-item.active {
+      color: var(--primary);
     }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .tab-item span.icon {
+      font-size: 22px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
   </style>
 </head>
 <body>
 
-  <div class="ambient-glow"></div>
-
-  <header class="header-bar">
-    <div class="header-brand">
-      <img src="logo.jpg" alt="Logo" class="logo-img">
-      <div>
-        <div class="brand-title">CYBER REMIND</div>
-        <div class="brand-status">
-          <span class="status-dot"></span> Planilha Ativa
-        </div>
-      </div>
-    </div>
-    <button class="btn-notify" onclick="requestNotificationPermission()">🔔 Notificações</button>
+  <header>
+    <h1 id="pageTitle">Buscar</h1>
   </header>
 
-  <main class="app-viewport">
+  <div class="container">
     
-    <div class="input-card">
-      <input type="text" id="reminderText" class="custom-input" placeholder="Novo lembrete...">
-      
-      <div class="toggle-row">
-        <div>
-          <span class="toggle-title">Notificação Agendada</span>
-          <span class="toggle-sub">Dispara no horário via Push</span>
+    <!-- Aba de Busca e Lista -->
+    <section id="tab-search" class="tab-content active">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Buscar IPVA, CNH, CRLV..." oninput="buscarDoc()">
+      </div>
+      <div id="lista"></div>
+    </section>
+
+    <!-- Aba de Upload -->
+    <section id="tab-upload" class="tab-content">
+      <div class="form-group">
+        <label>1. Selecionar Documento</label>
+        <div class="file-dropzone" onclick="document.getElementById('fileInput').click()">
+          <span style="font-size: 32px;">📄</span>
+          <p id="fileName">Toque para escolher o PDF</p>
+          <input type="file" id="fileInput" accept="application/pdf" style="display: none;" onchange="atualizarNomeArquivo()">
         </div>
-        <label class="ios-switch">
-          <input type="checkbox" id="timeToggle" onchange="toggleTimePicker()">
-          <span class="switch-slider"></span>
-        </label>
+
+        <label>2. Identificação</label>
+        <input type="text" id="docName" placeholder="Ex: IPVA 2026 Hilux">
       </div>
 
-      <div id="datePickerWrapper" class="date-picker-wrapper">
-        <input type="datetime-local" id="reminderTime" class="custom-date-input">
-      </div>
+      <button class="btn-submit" onclick="salvarDoc()">Salvar no iPhone</button>
+    </section>
 
-      <button id="btnAdd" class="btn-create" onclick="addReminder()">
-        <span>+ Criar Lembrete</span>
-      </button>
-    </div>
+  </div>
 
-    <div class="section-meta">
-      <span class="section-title">Lembretes</span>
-      <span id="taskCount" class="count-pill">0 Ativos</span>
-    </div>
-
-    <div id="reminderList" class="reminders-feed">
-      <div class="empty-card">
-        <div class="spinner"></div>
-        <span>Sincronizando com a nuvem...</span>
-      </div>
-    </div>
-
-  </main>
+  <!-- Tab Bar Nativa -->
+  <nav class="tab-bar">
+    <button class="tab-item active" onclick="switchTab('search', 'Buscar')">
+      <span class="icon">🔍</span>
+      <span>Documentos</span>
+    </button>
+    <button class="tab-item" onclick="switchTab('upload', 'Adicionar')">
+      <span class="icon">➕</span>
+      <span>Novo File</span>
+    </button>
+  </nav>
 
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby794-tvsb6axM_1kIBiiD8Sz_Tfe8rPsnRZp5Tz-DQBZ53Y9_qMyiZj-MdjanFRtUA/exec';
-    const ONESIGNAL_APP_ID = 'caf77239-bdc5-4064-a19a-8c3b0fbd9258';
+    let db;
+    const request = indexedDB.open("ComprovantesDB", 1);
 
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.init({
-        appId: ONESIGNAL_APP_ID,
-      });
-    });
+    request.onupgradeneeded = (e) => {
+      db = e.target.result;
+      db.createObjectStore("docs", { keyPath: "nome" });
+    };
 
-    async function requestNotificationPermission() {
-      window.OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.Notifications.requestPermission();
-      });
+    request.onsuccess = (e) => {
+      db = e.target.result;
+      listarDocs();
+    };
+
+    function switchTab(tab, title) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      event.currentTarget.classList.add('active');
+      document.getElementById('pageTitle').innerText = title;
     }
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Fail:', err));
-    }
-
-    function toggleTimePicker() {
-      const toggle = document.getElementById('timeToggle');
-      const wrapper = document.getElementById('datePickerWrapper');
-      wrapper.classList.toggle('open', toggle.checked);
-    }
-
-    async function loadReminders() {
-      try {
-        const res = await fetch(APPS_SCRIPT_URL);
-        const data = await res.json();
-        renderReminders(data);
-      } catch (err) {
-        document.getElementById('reminderList').innerHTML = `
-          <div class="empty-card">Erro ao carregar lembretes da planilha.</div>`;
+    function atualizarNomeArquivo() {
+      const file = document.getElementById("fileInput").files[0];
+      if (file) {
+        document.getElementById("fileName").innerText = file.name;
       }
     }
 
-    function renderReminders(list) {
-      const container = document.getElementById('reminderList');
-      const counter = document.getElementById('taskCount');
+    function salvarDoc() {
+      const file = document.getElementById("fileInput").files[0];
+      const nome = document.getElementById("docName").value.trim();
+      if (!file || !nome) return alert("Selecione um PDF e digite o nome!");
 
-      if (!list || list.length === 0) {
-        counter.textContent = '0 Ativos';
-        container.innerHTML = `<div class="empty-card">Nenhum lembrete pendente.</div>`;
-        return;
-      }
-
-      counter.textContent = `${list.length} ${list.length === 1 ? 'Ativo' : 'Ativos'}`;
-
-      container.innerHTML = list.map(item => {
-        const isTimeActive = item.ativarHorario && item.horarioAgendado;
-        const formattedTime = isTimeActive ? new Date(item.horarioAgendado).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
-
-        return `
-          <div class="task-card ${item.concluido ? 'completed' : ''}" id="${item.id}">
-            <div class="task-body">
-              <span class="task-text">${escapeHtml(item.texto)}</span>
-              ${isTimeActive ? `<span class="task-time-badge">⏰ ${formattedTime}</span>` : ''}
-            </div>
-            <div class="task-actions">
-              <button class="btn-icon btn-success" title="Concluir" onclick="toggleComplete('${item.id}')">✓</button>
-              <button class="btn-icon btn-danger" title="Excluir" onclick="deleteReminder('${item.id}')">✕</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function addReminder() {
-      const textInput = document.getElementById('reminderText');
-      const toggle = document.getElementById('timeToggle');
-      const timeInput = document.getElementById('reminderTime');
-      const btnAdd = document.getElementById('btnAdd');
-
-      if (!textInput.value.trim()) return;
-
-      const payload = {
-        action: 'ADD',
-        texto: textInput.value.trim(),
-        ativarHorario: toggle.checked,
-        horarioAgendado: toggle.checked ? timeInput.value : null
-      };
-
-      btnAdd.disabled = true;
-      btnAdd.innerHTML = `<div class="spinner"></div><span>Salvando...</span>`;
-
-      try {
-        await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify(payload)
-        });
-      } catch (e) {
-        console.error('Erro ao enviar:', e);
-      }
-
-      textInput.value = '';
-      toggle.checked = false;
-      toggleTimePicker();
-      btnAdd.disabled = false;
-      btnAdd.innerHTML = `<span>+ Criar Lembrete</span>`;
-
-      setTimeout(loadReminders, 1200);
-    }
-
-    async function toggleComplete(id) {
-      const card = document.getElementById(id);
-      if (card) card.classList.toggle('completed');
-
-      await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ action: 'TOGGLE_COMPLETE', id: id })
-      });
-    }
-
-    async function deleteReminder(id) {
-      const card = document.getElementById(id);
-      if (card) card.remove();
-
-      await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ action: 'DELETE', id: id })
+      const tx = db.transaction("docs", "readwrite");
+      tx.objectStore("docs").put({ 
+        nome: nome.toLowerCase(), 
+        displayNome: nome, 
+        blob: file,
+        data: new Date().toLocaleDateString('pt-BR')
       });
       
-      setTimeout(loadReminders, 1000);
+      tx.oncomplete = () => {
+        document.getElementById("docName").value = "";
+        document.getElementById("fileInput").value = "";
+        document.getElementById("fileName").innerText = "Toque para escolher o PDF";
+        listarDocs();
+        switchTab('search', 'Buscar');
+      };
     }
 
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, function(m) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-      });
+    function listarDocs(filtro = "") {
+      const lista = document.getElementById("lista");
+      lista.innerHTML = "";
+      let encontrou = false;
+
+      const tx = db.transaction("docs", "readonly");
+      tx.objectStore("docs").openCursor().onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+          if (cursor.value.nome.includes(filtro.toLowerCase())) {
+            encontrou = true;
+            const url = URL.createObjectURL(cursor.value.blob);
+            lista.innerHTML += `
+              <div class="card">
+                <div class="card-info">
+                  <div class="card-icon">📄</div>
+                  <div class="card-details">
+                    <h3>${cursor.value.displayNome}</h3>
+                    <p>Salvo em ${cursor.value.data || 'Offline'}</p>
+                  </div>
+                </div>
+                <a href="${url}" target="_blank" class="btn-view">Abrir</a>
+              </div>`;
+          }
+          cursor.continue();
+        } else if (!encontrou) {
+          lista.innerHTML = `
+            <div class="empty-state">
+              <span style="font-size: 40px;">📂</span>
+              <p style="margin-top: 8px;">Nenhum comprovante encontrado.</p>
+            </div>`;
+        }
+      };
     }
 
-    loadReminders();
-    setInterval(loadReminders, 25000);
+    function buscarDoc() {
+      listarDocs(document.getElementById("searchInput").value);
+    }
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
   </script>
 </body>
 </html>
