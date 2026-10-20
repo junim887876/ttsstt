@@ -3,17 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <title>Comprovantes 2026</title>
+  <title>Comprovantes</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="logo.jpg">
   <link rel="icon" type="image/jpeg" href="logo.jpg">
   
-  <meta name="theme-color" content="#0f0f12" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <!-- Dependências 2026: Tesseract OCR + PDF.js + pdf-lib para Mesclar PDFs -->
+  <!-- Dependências: PDF.js + Tesseract OCR + pdf-lib -->
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -26,9 +24,9 @@
       --accent-purple: #af52de;
       --danger: #ff3b30;
       
-      /* Modo Claro por padrão */
+      /* Modo Claro (Default) */
       --bg: #f2f2f7;
-      --card-bg: rgba(255, 255, 255, 0.78);
+      --card-bg: rgba(255, 255, 255, 0.82);
       --card-solid: #ffffff;
       --text: #000000;
       --text-secondary: #8e8e93;
@@ -38,24 +36,10 @@
       --search-bg: rgba(118, 118, 128, 0.12);
     }
 
-    /* Dark Mode Automático (iOS) e Manual */
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #000000;
-        --card-bg: rgba(28, 28, 30, 0.75);
-        --card-solid: #1c1c1e;
-        --text: #ffffff;
-        --text-secondary: #98989d;
-        --border: rgba(255, 255, 255, 0.15);
-        --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-        --search-bg: rgba(118, 118, 128, 0.24);
-      }
-    }
-
-    /* Override para alternador manual */
+    /* Override Dark Mode */
     body.theme-dark {
       --bg: #000000 !important;
-      --card-bg: rgba(28, 28, 30, 0.75) !important;
+      --card-bg: rgba(28, 28, 30, 0.78) !important;
       --card-solid: #1c1c1e !important;
       --text: #ffffff !important;
       --text-secondary: #98989d !important;
@@ -66,7 +50,7 @@
 
     body.theme-light {
       --bg: #f2f2f7 !important;
-      --card-bg: rgba(255, 255, 255, 0.78) !important;
+      --card-bg: rgba(255, 255, 255, 0.82) !important;
       --card-solid: #ffffff !important;
       --text: #000000 !important;
       --text-secondary: #8e8e93 !important;
@@ -80,7 +64,7 @@
       -webkit-tap-highlight-color: transparent;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
     }
 
     body {
@@ -100,7 +84,7 @@
       margin: 0 auto;
     }
 
-    /* Top Bar 2026 */
+    /* Top Bar */
     header {
       padding: 12px 20px 16px;
       display: flex;
@@ -130,7 +114,7 @@
       box-shadow: var(--shadow);
     }
 
-    /* Abas & Animações 2026 */
+    /* Abas & Transições */
     .tab-content {
       display: none;
       animation: iosSpring 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
@@ -145,7 +129,7 @@
       to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    /* Interface de Busca */
+    /* Busca */
     .search-wrapper {
       position: relative;
       margin-bottom: 14px;
@@ -160,7 +144,6 @@
       font-size: 17px;
       outline: none;
       color: var(--text);
-      transition: all 0.2s;
     }
 
     .search-wrapper .search-icon {
@@ -172,7 +155,7 @@
       opacity: 0.4;
     }
 
-    /* Chips Filtro */
+    /* Chips Dinâmicos de Categoria */
     .chips-wrapper {
       display: flex;
       gap: 8px;
@@ -202,7 +185,7 @@
       box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
     }
 
-    /* Cards Neumórficos / Glass 2026 */
+    /* Card de Documento com Tag de Cor */
     .card {
       background: var(--card-bg);
       backdrop-filter: var(--glass-blur);
@@ -213,10 +196,18 @@
       border: 0.5px solid var(--border);
       box-shadow: var(--shadow);
       transition: transform 0.2s ease;
+      position: relative;
+      overflow: hidden;
     }
 
     .card:active {
       transform: scale(0.98);
+    }
+
+    .card-stripe {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 6px;
     }
 
     .card-header {
@@ -231,6 +222,7 @@
       align-items: center;
       gap: 12px;
       overflow: hidden;
+      padding-left: 6px;
     }
 
     .card-icon {
@@ -254,13 +246,24 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 170px;
+      max-width: 160px;
     }
 
     .card-meta p {
       font-size: 12px;
       color: var(--text-secondary);
       margin-top: 2px;
+    }
+
+    .cat-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 10px;
+      color: white;
+      margin-top: 4px;
+      text-transform: uppercase;
     }
 
     .card-actions-grid {
@@ -342,7 +345,7 @@
     }
 
     .form-field {
-      margin-top: 16px;
+      margin-top: 14px;
     }
 
     .form-field label {
@@ -352,10 +355,9 @@
       color: var(--text-secondary);
       text-transform: uppercase;
       margin-bottom: 6px;
-      letter-spacing: 0.5px;
     }
 
-    .form-field input {
+    .form-field input, .form-field select {
       width: 100%;
       padding: 14px;
       background: var(--search-bg);
@@ -380,7 +382,7 @@
       cursor: pointer;
     }
 
-    /* Modal PDF Integrado 2026 */
+    /* Modal PDF */
     .pdf-modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -464,7 +466,31 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Floating Tab Bar 2026 estilo iOS 18/19 */
+    /* Lista de Categorias Criadas em Opções */
+    .cat-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: var(--search-bg);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .cat-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+
+    .cat-color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+    }
+
+    /* Floating Tab Bar */
     .tab-bar {
       position: fixed;
       bottom: max(env(safe-area-inset-bottom), 14px);
@@ -513,31 +539,29 @@
 
   <header>
     <div>
-      <h1 id="pageTitle">Comprovantes</h1>
+      <h1 id="pageTitle">Documentos</h1>
     </div>
-    <button class="theme-toggle-btn" onclick="alternarTema()" id="themeBtn">🌙</button>
+    <button class="theme-toggle-btn" onclick="alternarTemaManual()" id="themeBtn">🌙</button>
   </header>
 
   <div class="container">
     
-    <!-- ABA 1: Lista e Busca -->
+    <!-- ABA 1: Documentos e Busca -->
     <section id="tab-search" class="tab-content active">
       <div class="search-wrapper">
         <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" placeholder="Pesquisar documento..." oninput="buscarDoc()">
       </div>
 
-      <div class="chips-wrapper">
+      <!-- Categorias Dinâmicas -->
+      <div class="chips-wrapper" id="chipsContainer">
         <button class="chip active" onclick="filtrarChip(this, '')">Todos</button>
-        <button class="chip" onclick="filtrarChip(this, 'ipva')">IPVA</button>
-        <button class="chip" onclick="filtrarChip(this, 'cnh')">CNH</button>
-        <button class="chip" onclick="filtrarChip(this, 'crlv')">CRLV</button>
       </div>
 
       <div id="lista"></div>
     </section>
 
-    <!-- ABA 2: Upload com IA -->
+    <!-- ABA 2: Upload -->
     <section id="tab-upload" class="tab-content">
       <div class="section-card">
         <div class="dropzone" onclick="document.getElementById('fileInput').click()">
@@ -557,25 +581,44 @@
           <input type="text" id="docName" placeholder="Ex: IPVA 2026 Hilux">
         </div>
 
+        <!-- Seletor de Categoria -->
+        <div class="form-field">
+          <label>Categoria do Documento</label>
+          <select id="docCategorySelect">
+            <option value="Geral">Geral</option>
+          </select>
+        </div>
+
         <button class="btn-submit" onclick="salvarDoc()">Salvar no iPhone</button>
       </div>
     </section>
 
-    <!-- ABA 3: Ferramentas & Exportação Unificada -->
+    <!-- ABA 3: Opções & Categorias -->
     <section id="tab-tools" class="tab-content">
+      <div class="section-card">
+        <h3 style="margin-bottom: 8px;">🏷️ Gerenciar Categorias</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+          Crie categorias personalizadas para organizar e aplicar cores diferentes aos seus documentos.
+        </p>
+        
+        <div class="form-field" style="margin-top: 0;">
+          <input type="text" id="newCatName" placeholder="Nome da categoria (ex: Hilux, Moto)">
+        </div>
+        <button class="btn-submit" style="margin-top: 10px; padding: 12px;" onclick="criarCategoria()">Criar Nova Categoria</button>
+
+        <div style="margin-top: 16px;" id="listaCategoriasGerenciador"></div>
+      </div>
+
       <div class="section-card">
         <h3 style="margin-bottom: 6px;">📄 PDF Unificado (Dossiê)</h3>
         <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
-          Junte todos os seus comprovantes salvos em um único arquivo PDF de várias páginas para impressão ou envio.
+          Junte todos os seus comprovantes salvos em um único PDF para impressão.
         </p>
-        <button class="btn-submit" onclick="gerarPDFUnificado()">Juntar & Exportar PDF Único</button>
+        <button class="btn-submit" style="background: linear-gradient(135deg, #af52de 0%, #007aff 100%);" onclick="gerarPDFUnificado()">Juntar & Exportar PDF Único</button>
       </div>
 
       <div class="section-card">
         <h3 style="margin-bottom: 6px;">⚙️ Backup dos Dados</h3>
-        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
-          Exporte ou restaure todos os seus PDFs salvos em arquivo `.json`.
-        </p>
         <button class="btn-action primary" style="width: 100%; padding: 14px; margin-bottom: 8px;" onclick="exportarBackup()">Exportar Backup (.json)</button>
         <input type="file" id="backupInput" accept=".json" style="display: none;" onchange="importarBackup(this)">
         <button class="btn-action" style="width: 100%; padding: 14px;" onclick="document.getElementById('backupInput').click()">Restaurar Backup</button>
@@ -584,7 +627,7 @@
 
   </div>
 
-  <!-- Modal PDF Visualizador Integrado -->
+  <!-- Modal PDF -->
   <div class="pdf-modal" id="pdfModal">
     <div class="pdf-modal-header">
       <h3 id="modalTitle">Documento</h3>
@@ -597,7 +640,7 @@
 
   <!-- Floating Navigation Bar -->
   <nav class="tab-bar">
-    <button class="tab-item active" onclick="switchTab('search', 'Comprovantes', this)">
+    <button class="tab-item active" onclick="switchTab('search', 'Documentos', this)">
       <span class="icon">📁</span>
       <span>Documentos</span>
     </button>
@@ -605,14 +648,21 @@
       <span class="icon">➕</span>
       <span>Adicionar</span>
     </button>
-    <button class="tab-item" onclick="switchTab('tools', 'Ferramentas', this)">
-      <span class="icon">🛠️</span>
+    <button class="tab-item" onclick="switchTab('tools', 'Opções', this)">
+      <span class="icon">⚙️</span>
       <span>Opções</span>
     </button>
   </nav>
 
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
+
+    // Paleta de Cores para as Categorias
+    const CORES_DISPONIVEIS = ['#007aff', '#ff9500', '#34c759', '#af52de', '#ff2d55', '#5856d6', '#00c7be', '#ff3b30'];
+
+    let categorias = JSON.parse(localStorage.getItem('minhas_categorias')) || [
+      { nome: 'Geral', cor: '#007aff' }
+    ];
 
     let db;
     const request = indexedDB.open("ComprovantesDB", 1);
@@ -624,11 +674,29 @@
 
     request.onsuccess = (e) => {
       db = e.target.result;
+      verificarHorarioTema();
+      atualizarInterfaceCategorias();
       listarDocs();
     };
 
-    /* Alternador Dinâmico de Tema */
-    function alternarTema() {
+    /* Ajuste Automático de Tema das 06h às 18h (Claro) e 18h às 06h (Dark) */
+    function verificarHorarioTema() {
+      const hora = new Date().getHours();
+      const body = document.body;
+      const btn = document.getElementById("themeBtn");
+
+      if (hora >= 6 && hora < 18) {
+        body.classList.remove("theme-dark");
+        body.classList.add("theme-light");
+        btn.innerText = "☀️";
+      } else {
+        body.classList.remove("theme-light");
+        body.classList.add("theme-dark");
+        btn.innerText = "🌙";
+      }
+    }
+
+    function alternarTemaManual() {
       const body = document.body;
       const btn = document.getElementById("themeBtn");
       
@@ -652,7 +720,67 @@
       document.getElementById('pageTitle').innerText = title;
     }
 
-    /* Leitura Inteligente com OCR/IA 100% Offline */
+    /* Gerenciamento de Categorias */
+    function atualizarInterfaceCategorias() {
+      // 1. Atualiza Chips da aba Documentos
+      const containerChips = document.getElementById("chipsContainer");
+      containerChips.innerHTML = `<button class="chip active" onclick="filtrarChip(this, '')">Todos</button>`;
+      
+      categorias.forEach(cat => {
+        containerChips.innerHTML += `<button class="chip" onclick="filtrarChip(this, '${cat.nome.toLowerCase()}')">${cat.nome}</button>`;
+      });
+
+      // 2. Atualiza Select da aba Adicionar
+      const select = document.getElementById("docCategorySelect");
+      select.innerHTML = "";
+      categorias.forEach(cat => {
+        select.innerHTML += `<option value="${cat.nome}">${cat.nome}</option>`;
+      });
+
+      // 3. Atualiza Lista em Opções
+      const listaGerenciador = document.getElementById("listaCategoriasGerenciador");
+      listaGerenciador.innerHTML = "";
+      categorias.forEach((cat, index) => {
+        listaGerenciador.innerHTML += `
+          <div class="cat-item">
+            <div class="cat-item-left">
+              <div class="cat-color-dot" style="background: ${cat.cor};"></div>
+              <span>${cat.nome}</span>
+            </div>
+            ${index > 0 ? `<button class="btn-action danger" onclick="deletarCategoria(${index})">Deletar</button>` : `<span style="font-size: 11px; color: var(--text-secondary);">Padrão</span>`}
+          </div>`;
+      });
+
+      localStorage.setItem('minhas_categorias', JSON.stringify(categorias));
+    }
+
+    function criarCategoria() {
+      const input = document.getElementById("newCatName");
+      const nome = input.value.trim();
+      if (!nome) return alert("Digite um nome para a categoria!");
+
+      const cor = CORES_DISPONIVEIS[categorias.length % CORES_DISPONIVEIS.length];
+      categorias.push({ nome: nome, cor: cor });
+      input.value = "";
+      
+      atualizarInterfaceCategorias();
+      alert("Categoria criada com sucesso!");
+    }
+
+    function deletarCategoria(index) {
+      if (confirm(`Deseja apagar a categoria "${categorias[index].nome}"?`)) {
+        categorias.splice(index, 1);
+        atualizarInterfaceCategorias();
+        listarDocs();
+      }
+    }
+
+    function obterCorCategoria(nomeCat) {
+      const cat = categorias.find(c => c.nome.toLowerCase() === (nomeCat || "").toLowerCase());
+      return cat ? cat.cor : '#007aff';
+    }
+
+    /* Leitura Inteligente IA */
     async function processarArquivoIA() {
       const file = document.getElementById("fileInput").files[0];
       if (!file) return;
@@ -703,6 +831,8 @@
     function salvarDoc() {
       const file = document.getElementById("fileInput").files[0];
       const nome = document.getElementById("docName").value.trim();
+      const categoria = document.getElementById("docCategorySelect").value;
+
       if (!file || !nome) return alert("Selecione o PDF e confirme o nome!");
 
       const tx = db.transaction("docs", "readwrite");
@@ -710,6 +840,7 @@
         id: Date.now().toString(),
         nome: nome.toLowerCase(), 
         displayNome: nome, 
+        categoria: categoria,
         blob: file,
         data: new Date().toLocaleDateString('pt-BR')
       });
@@ -719,7 +850,7 @@
         document.getElementById("fileInput").value = "";
         document.getElementById("fileName").innerText = "Toque para selecionar PDF";
         listarDocs();
-        switchTab('search', 'Comprovantes', document.querySelectorAll('.tab-item')[0]);
+        switchTab('search', 'Documentos', document.querySelectorAll('.tab-item')[0]);
       };
     }
 
@@ -732,23 +863,31 @@
       tx.objectStore("docs").openCursor().onsuccess = (e) => {
         const cursor = e.target.result;
         if (cursor) {
-          if (cursor.value.nome.includes(filtro.toLowerCase())) {
+          const doc = cursor.value;
+          const catNome = doc.categoria || "Geral";
+          const cor = obterCorCategoria(catNome);
+
+          const buscaMatch = doc.nome.includes(filtro.toLowerCase()) || catNome.toLowerCase().includes(filtro.toLowerCase());
+
+          if (buscaMatch) {
             encontrou = true;
             lista.innerHTML += `
               <div class="card">
+                <div class="card-stripe" style="background: ${cor};"></div>
                 <div class="card-header">
                   <div class="card-left">
-                    <div class="card-icon">📄</div>
+                    <div class="card-icon" style="background: linear-gradient(135deg, ${cor} 0%, #5856d6 100%);">📄</div>
                     <div class="card-meta">
-                      <h3>${cursor.value.displayNome}</h3>
-                      <p>Salvo em ${cursor.value.data}</p>
+                      <h3>${doc.displayNome}</h3>
+                      <span class="cat-badge" style="background: ${cor};">${catNome}</span>
+                      <p>Salvo em ${doc.data}</p>
                     </div>
                   </div>
                 </div>
                 <div class="card-actions-grid">
-                  <button class="btn-action primary" onclick="abrirModal('${cursor.value.id}')">Visualizar</button>
-                  <button class="btn-action whatsapp" onclick="compartilharWhatsApp('${cursor.value.displayNome}', '${cursor.value.data}')">WhatsApp</button>
-                  <button class="btn-action danger" onclick="deletarDoc('${cursor.value.id}')">✕</button>
+                  <button class="btn-action primary" onclick="abrirModal('${doc.id}')">Visualizar</button>
+                  <button class="btn-action whatsapp" onclick="compartilharWhatsApp('${doc.displayNome}', '${doc.data}')">WhatsApp</button>
+                  <button class="btn-action danger" onclick="deletarDoc('${doc.id}')">✕</button>
                 </div>
               </div>`;
           }
@@ -763,14 +902,12 @@
       };
     }
 
-    /* Compartilhamento Rápido no WhatsApp com Mensagem Formata */
     function compartilharWhatsApp(nome, data) {
-      const texto = `*📄 Comprovante do Veículo*\n\n*Documento:* ${nome}\n*Data de Registro:* ${data}\n\n_Enviado via App Comprovantes 2026_`;
+      const texto = `*📄 Comprovante do Veículo*\n\n*Documento:* ${nome}\n*Data de Registro:* ${data}\n\n_Enviado via App Comprovantes_`;
       const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
       window.open(url, '_blank');
     }
 
-    /* Modal Integrado */
     function abrirModal(id) {
       const tx = db.transaction("docs", "readonly");
       tx.objectStore("docs").get(id).onsuccess = (e) => {
@@ -808,7 +945,7 @@
       buscarDoc();
     }
 
-    /* Geração de PDF Unificado (Exportação Única) */
+    /* PDF Unificado */
     async function gerarPDFUnificado() {
       const tx = db.transaction("docs", "readonly");
       const pdfs = [];
@@ -857,6 +994,7 @@
               id: doc.id,
               nome: doc.nome,
               displayNome: doc.displayNome,
+              categoria: doc.categoria || "Geral",
               data: doc.data,
               base64: reader.result
             });
@@ -899,6 +1037,7 @@
               id: doc.id || Date.now().toString(),
               nome: doc.nome,
               displayNome: doc.displayNome,
+              categoria: doc.categoria || "Geral",
               data: doc.data,
               blob: blob
             });
@@ -907,7 +1046,7 @@
           tx.oncomplete = () => {
             alert("Backup restaurado!");
             listarDocs();
-            switchTab('search', 'Comprovantes', document.querySelectorAll('.tab-item')[0]);
+            switchTab('search', 'Documentos', document.querySelectorAll('.tab-item')[0]);
           };
         } catch (err) {
           alert("Arquivo de backup inválido.");
