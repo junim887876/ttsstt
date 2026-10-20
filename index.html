@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <title>Comprovantes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+  <title>Comprovantes 2026</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="logo.jpg">
   <link rel="icon" type="image/jpeg" href="logo.jpg">
@@ -36,7 +36,6 @@
       --search-bg: rgba(118, 118, 128, 0.12);
     }
 
-    /* Override Dark Mode */
     body.theme-dark {
       --bg: #000000 !important;
       --card-bg: rgba(28, 28, 30, 0.78) !important;
@@ -84,7 +83,6 @@
       margin: 0 auto;
     }
 
-    /* Top Bar */
     header {
       padding: 12px 20px 16px;
       display: flex;
@@ -114,7 +112,6 @@
       box-shadow: var(--shadow);
     }
 
-    /* Abas & Transições */
     .tab-content {
       display: none;
       animation: iosSpring 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
@@ -129,7 +126,6 @@
       to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    /* Busca */
     .search-wrapper {
       position: relative;
       margin-bottom: 14px;
@@ -155,7 +151,6 @@
       opacity: 0.4;
     }
 
-    /* Chips Dinâmicos de Categoria */
     .chips-wrapper {
       display: flex;
       gap: 8px;
@@ -185,7 +180,6 @@
       box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
     }
 
-    /* Card de Documento com Tag de Cor */
     .card {
       background: var(--card-bg);
       backdrop-filter: var(--glass-blur);
@@ -303,7 +297,6 @@
       padding: 10px 14px;
     }
 
-    /* Cards de Formulário */
     .section-card {
       background: var(--card-bg);
       backdrop-filter: var(--glass-blur);
@@ -382,11 +375,11 @@
       cursor: pointer;
     }
 
-    /* Modal PDF */
+    /* Modal PDF com Suporte a Zoom Nativo e Botões */
     .pdf-modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       z-index: 1000;
@@ -401,7 +394,7 @@
     }
 
     .pdf-modal-header {
-      padding: max(env(safe-area-inset-top), 16px) 20px 12px;
+      padding: max(env(safe-area-inset-top), 16px) 16px 12px;
       background: var(--card-solid);
       display: flex;
       justify-content: space-between;
@@ -410,40 +403,71 @@
     }
 
     .pdf-modal-header h3 {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 250px;
+      max-width: 150px;
     }
 
-    .btn-close-modal {
+    .zoom-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-zoom {
       background: rgba(118, 118, 128, 0.2);
       border: none;
       color: var(--text);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-close-modal {
+      background: rgba(255, 59, 48, 0.15);
+      color: var(--danger);
+      border: none;
       width: 32px;
       height: 32px;
       border-radius: 50%;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      margin-left: 8px;
     }
 
+    /* ÁREA DE CANVAS DO PDF PARA ZOOM FLUIDO */
     .pdf-modal-body {
       flex: 1;
       width: 100%;
       height: 100%;
-      background: #323639;
+      overflow: auto;
+      background: #1c1c1e;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px 10px;
+      touch-action: pan-x pan-y pinch-zoom;
+      -webkit-overflow-scrolling: touch;
     }
 
-    .pdf-modal-body iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+    #pdfCanvas {
+      max-width: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border-radius: 8px;
+      transition: transform 0.1s ease-out;
+      transform-origin: top center;
     }
 
-    /* Loader IA */
     .ai-loader {
       display: none;
       align-items: center;
@@ -466,7 +490,6 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Lista de Categorias Criadas em Opções */
     .cat-item {
       display: flex;
       align-items: center;
@@ -490,7 +513,6 @@
       border-radius: 50%;
     }
 
-    /* Floating Tab Bar */
     .tab-bar {
       position: fixed;
       bottom: max(env(safe-area-inset-bottom), 14px);
@@ -553,7 +575,6 @@
         <input type="text" id="searchInput" placeholder="Pesquisar documento..." oninput="buscarDoc()">
       </div>
 
-      <!-- Categorias Dinâmicas -->
       <div class="chips-wrapper" id="chipsContainer">
         <button class="chip active" onclick="filtrarChip(this, '')">Todos</button>
       </div>
@@ -581,7 +602,6 @@
           <input type="text" id="docName" placeholder="Ex: IPVA 2026 Hilux">
         </div>
 
-        <!-- Seletor de Categoria -->
         <div class="form-field">
           <label>Categoria do Documento</label>
           <select id="docCategorySelect">
@@ -598,7 +618,7 @@
       <div class="section-card">
         <h3 style="margin-bottom: 8px;">🏷️ Gerenciar Categorias</h3>
         <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
-          Crie categorias personalizadas para organizar e aplicar cores diferentes aos seus documentos.
+          Crie categorias personalizadas para organizar seus comprovantes.
         </p>
         
         <div class="form-field" style="margin-top: 0;">
@@ -612,7 +632,7 @@
       <div class="section-card">
         <h3 style="margin-bottom: 6px;">📄 PDF Unificado (Dossiê)</h3>
         <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
-          Junte todos os seus comprovantes salvos em um único PDF para impressão.
+          Junte todos os seus comprovantes em um único PDF.
         </p>
         <button class="btn-submit" style="background: linear-gradient(135deg, #af52de 0%, #007aff 100%);" onclick="gerarPDFUnificado()">Juntar & Exportar PDF Único</button>
       </div>
@@ -627,14 +647,19 @@
 
   </div>
 
-  <!-- Modal PDF -->
+  <!-- Modal PDF com Canvas Renderizado & Controles de Zoom -->
   <div class="pdf-modal" id="pdfModal">
     <div class="pdf-modal-header">
       <h3 id="modalTitle">Documento</h3>
-      <button class="btn-close-modal" onclick="fecharModal()">✕</button>
+      <div class="zoom-controls">
+        <button class="btn-zoom" onclick="alterarZoom(-0.2)">➖</button>
+        <button class="btn-zoom" onclick="resetarZoom()">100%</button>
+        <button class="btn-zoom" onclick="alterarZoom(0.2)">➕</button>
+        <button class="btn-close-modal" onclick="fecharModal()">✕</button>
+      </div>
     </div>
-    <div class="pdf-modal-body">
-      <iframe id="pdfFrame"></iframe>
+    <div class="pdf-modal-body" id="modalBody">
+      <canvas id="pdfCanvas"></canvas>
     </div>
   </div>
 
@@ -657,12 +682,14 @@
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
 
-    // Paleta de Cores para as Categorias
     const CORES_DISPONIVEIS = ['#007aff', '#ff9500', '#34c759', '#af52de', '#ff2d55', '#5856d6', '#00c7be', '#ff3b30'];
 
     let categorias = JSON.parse(localStorage.getItem('minhas_categorias')) || [
       { nome: 'Geral', cor: '#007aff' }
     ];
+
+    let currentPdfDoc = null;
+    let currentScale = 1.2;
 
     let db;
     const request = indexedDB.open("ComprovantesDB", 1);
@@ -679,7 +706,6 @@
       listarDocs();
     };
 
-    /* Ajuste Automático de Tema das 06h às 18h (Claro) e 18h às 06h (Dark) */
     function verificarHorarioTema() {
       const hora = new Date().getHours();
       const body = document.body;
@@ -720,9 +746,7 @@
       document.getElementById('pageTitle').innerText = title;
     }
 
-    /* Gerenciamento de Categorias */
     function atualizarInterfaceCategorias() {
-      // 1. Atualiza Chips da aba Documentos
       const containerChips = document.getElementById("chipsContainer");
       containerChips.innerHTML = `<button class="chip active" onclick="filtrarChip(this, '')">Todos</button>`;
       
@@ -730,14 +754,12 @@
         containerChips.innerHTML += `<button class="chip" onclick="filtrarChip(this, '${cat.nome.toLowerCase()}')">${cat.nome}</button>`;
       });
 
-      // 2. Atualiza Select da aba Adicionar
       const select = document.getElementById("docCategorySelect");
       select.innerHTML = "";
       categorias.forEach(cat => {
         select.innerHTML += `<option value="${cat.nome}">${cat.nome}</option>`;
       });
 
-      // 3. Atualiza Lista em Opções
       const listaGerenciador = document.getElementById("listaCategoriasGerenciador");
       listaGerenciador.innerHTML = "";
       categorias.forEach((cat, index) => {
@@ -764,7 +786,7 @@
       input.value = "";
       
       atualizarInterfaceCategorias();
-      alert("Categoria criada com sucesso!");
+      alert("Categoria criada!");
     }
 
     function deletarCategoria(index) {
@@ -780,7 +802,6 @@
       return cat ? cat.cor : '#007aff';
     }
 
-    /* Leitura Inteligente IA */
     async function processarArquivoIA() {
       const file = document.getElementById("fileInput").files[0];
       if (!file) return;
@@ -908,22 +929,51 @@
       window.open(url, '_blank');
     }
 
-    function abrirModal(id) {
+    /* RENDERIZADOR NATIVO DE CANVAS COM SUPORTE A ZOOM */
+    async function abrirModal(id) {
       const tx = db.transaction("docs", "readonly");
-      tx.objectStore("docs").get(id).onsuccess = (e) => {
+      tx.objectStore("docs").get(id).onsuccess = async (e) => {
         const doc = e.target.result;
         if (doc) {
-          const url = URL.createObjectURL(doc.blob);
           document.getElementById("modalTitle").innerText = doc.displayNome;
-          document.getElementById("pdfFrame").src = url;
           document.getElementById("pdfModal").style.display = "flex";
+
+          const arrayBuffer = await doc.blob.arrayBuffer();
+          currentPdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          currentScale = 1.2;
+          renderizarPaginaPDF();
         }
       };
     }
 
+    async function renderizarPaginaPDF() {
+      if (!currentPdfDoc) return;
+
+      const page = await currentPdfDoc.getPage(1);
+      const viewport = page.getViewport({ scale: currentScale });
+      
+      const canvas = document.getElementById("pdfCanvas");
+      const context = canvas.getContext("2d");
+
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      await page.render({ canvasContext: context, viewport: viewport }).promise;
+    }
+
+    function alterarZoom(delta) {
+      currentScale = Math.max(0.5, Math.min(3.5, currentScale + delta));
+      renderizarPaginaPDF();
+    }
+
+    function resetarZoom() {
+      currentScale = 1.2;
+      renderizarPaginaPDF();
+    }
+
     function fecharModal() {
       document.getElementById("pdfModal").style.display = "none";
-      document.getElementById("pdfFrame").src = "";
+      currentPdfDoc = null;
     }
 
     function deletarDoc(id) {
@@ -945,7 +995,6 @@
       buscarDoc();
     }
 
-    /* PDF Unificado */
     async function gerarPDFUnificado() {
       const tx = db.transaction("docs", "readonly");
       const pdfs = [];
@@ -969,16 +1018,18 @@
 
           const mergedPdfBytes = await mergedPdf.save();
           const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-
+          
           document.getElementById("modalTitle").innerText = "Dossiê PDF Unificado";
-          document.getElementById("pdfFrame").src = url;
           document.getElementById("pdfModal").style.display = "flex";
+
+          const arrayBuffer = await blob.arrayBuffer();
+          currentPdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          currentScale = 1.2;
+          renderizarPaginaPDF();
         }
       };
     }
 
-    /* Backup e Restauração */
     function exportarBackup() {
       const tx = db.transaction("docs", "readonly");
       const todosDocs = [];
